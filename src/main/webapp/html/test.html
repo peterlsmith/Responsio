@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'sha256-faYLAprU0a3oYsCKa3pNVcqsJsuDCoRwu8hHG0cjJIo='" /> 
+        <!-- This is how you would normally load the Responsio 
+            <script data-responsio-identity="prototype" src="../javascript/responsio-1.0.0.js"></script>
+        -->
+        <style>
+            body {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                max-height: 100%;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                border: none;
+                font-size: 1rem;
+            }
+
+            header {
+                display: block;
+                font-size: 2rem;
+                text-align: center;
+                line-height: 50px;
+                height: 50px;
+            }
+            main {
+                display: block;
+                position: absolute;
+                top: 50px;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+            header > button {
+                position: relative;
+                top: -5px;
+            }
+        </style>
+    </head>
+    <body>
+        <style>
+            .pws-cb-win {
+            --window-position: relative;
+            --window-right: 0;
+            --window-left: 0;
+            --window-top: 15%;
+            --window-width: 360px;
+            --window-height: 70%;
+            --window-margin: 0 auto 0 auto;
+            --handle-display: none;
+            }
+        </style>
+        <header>Responsio Test Tool : <button>Reset</button></header>
+        <script>
+            /* Create a script element to load the Responsio client tool (default to 'prototype' identity) */
+
+            const params = new URLSearchParams(window.location.search),
+                identity = params.get('identity') || 'prototype',
+                script = document.createElement('script');
+            script.setAttribute('data-responsio-identity', identity);
+            script.setAttribute('src', '../javascript/responsio-1.0.0.js');
+            document.body.append(script);
+
+            /* Set up a 'reset' handler on the reset button */
+
+            document.querySelector('header>button').addEventListener('click',() => {
+                const req = new XMLHttpRequest();
+                req.addEventListener("load", () => window.location.reload());
+                req.open('GET', '../responsio/refresh/' + identity);
+                req.send();
+            });</script>
+        <main>
+        </main>
+    </body>
+</html>

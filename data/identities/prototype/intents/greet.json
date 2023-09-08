@@ -1,0 +1,35 @@
+{
+    "intent" : "greet",
+    "train": [{
+            "type": "categorizer",
+            "name": "default",
+            "data": "default",
+            "pipeline": "train"
+        }
+    ],
+    "data": {
+        "default" : {
+            "en": [
+                "Howdy",
+                "Hello",
+                "Hello, how are you",
+                "How do you do",
+                "gday mate",
+                "Hi there",
+                "Hi",
+                "Good morning",
+                "Good afternoon",
+                "Sup!"
+            ],
+            "fr": [
+                "salut",
+                "bonjour",
+                "bonsoir",
+                "coucou",
+                "Allô",
+                "bienvenue",
+                "enchanté"
+            ]
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "intent" : "joke",
+    "train": [{
+            "type": "categorizer",
+            "name": "default",
+            "data": "default",
+            "pipeline": "train"
+        }
+    ],
+    "data": {
+        "default": {
+            "en" : [
+                "can you tell me a joke",
+                "tell me a joke please",
+                "another joke",
+                "cheer me up",
+                "tell me a joke",
+                "humor me",
+                "tell me something funny",
+                "say something funny",
+                "I need some humor"
+            ]
+        }
+    }
+}

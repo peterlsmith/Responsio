@@ -1,0 +1,148 @@
+
+.pws-cb-win {
+    position: var(--window-position, absolute);
+    top: var(--window-top, auto);
+    bottom: var(--window-bottom, 0);
+    left: var(--window-left, auto);
+    right: var(--window-right, 100px);
+
+    display: flex;
+    flex-direction: column;
+    margin: var(--window-margin, 0);
+    padding: 0;
+    background-color: var(--window-bg-color, white);
+    width: var(--window-width, 240px);
+    height: var(--window-height, 480px);
+    font-family: Arial, Helvetica, sans-serif;
+    border: var(--window-border-width, 1px) var(--window-border-style, solid) var(--window-border-color, #ccc);
+    box-sizing: border-box;
+    border-radius: var(--window-border-radius, 2px);
+    transition: transform var(--window-popup-time, 1s);
+}
+
+.pws-cb-win.pws-cb-show {
+    transform: translateY(-100%);
+}
+
+.pws-cb-handle {
+    display: var(--handle-display, block);
+    position: absolute;
+    top: 0;
+    right: calc(0px - var(--handle-border-width, var(--window-border-width, 1px)));
+    width: 34px;
+    height: 30px;
+    background-image: url("../images/responsio.png");
+    background-size: 26px;
+    background-position: center;
+    background-repeat: no-repeat;
+    transform: translateY(-30px);
+    background-color: var(--handle-bg-color, var(--title-bg-color, #f7f7f7));
+    box-sizing: border-box;
+    border-top-left-radius: var(--handle-border-radius, var(--window-border-radius, 2px));
+    border-top-right-radius: var(--handle-border-radius, var(--window-border-radius, 2px));
+    border: var(--handle-border-width, var(--window-border-width, 1px)) var(--handle-border-style, var(--window-border-style, solid)) var(--handle-border-color, var(--window-border-color, #ccc)); 
+    border-bottom: 0;
+}
+.pws-cb-handle:hover {
+    animation: pulse 0.3s;
+    animation-timing-function: linear;   
+}
+@keyframes pulse {
+    0% { background-size: 26px; }
+    50% { background-size: 30px; }
+    100% { background-size: 26px; }
+}
+
+.pws-cb-title {
+    display: var(--title-display, block);
+    flex-grow: 0;
+    margin: 0;
+    padding: 0 4px;
+    line-height: var(--title-height, 200%);
+    text-align: var(--title-position, center);
+    background-color: var(--title-bg-color, #f7f7f7);
+    font-size: var(--title-font-size, 1rem);
+    box-sizing: border-box;
+    border-bottom: var(--window-border-width, 1px) var(--window-border-style, solid) var(--window-border-color, #ccc);
+}
+
+.pws-cb-chat {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    flex-grow: 1; /* Take all extra space in .pws-cb-win */
+    position: relative;
+    vertical-align: bottom;
+    overflow: scroll;
+}
+
+.pws-cb-footer {
+    flex-grow: 0;
+    background-color: var(--footer-bg-color, #f7f7f7);
+    padding: 4px;
+}
+
+.pws-cb-footer > textarea {
+    display: block;
+    resize: none;
+    font-size: var(--input-font-size, 0.8rem);
+    width: 100%;
+    height: var(--input-height, 38px);
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--input-background-color, white);
+}
+
+.pws-cb-message {
+    font-size: var(--message-font-size, 1rem);
+}
+
+.pws-cb-message > span {
+    position: relative;
+    display: inline-block;
+    max-width: 65%;
+    padding: 10px;
+    border-radius: var(--message-border-radius, 20px);
+    margin-bottom: 12px;
+}
+
+
+.pws-cb-message:first-child {
+    margin-top: auto;
+}
+
+.pws-cb-user > span {
+    float: right;
+    background-color: var(--user-background-color, limegreen);
+    color: var(--user-text-color, white);
+    margin-right: 4px;
+    border: 1px solid var(--user-border-color, #eee);
+}
+
+.pws-cb-bot > span {
+    float: left;
+    background-color: var(--bot-background-color, #eee);
+    color: var(--bot-text-color, black);
+    margin-left: 4px;
+    border: 1px solid var(--bot-border-color, red);
+}
+
+
+.pws-cb-bot-pending:after {
+    position: relative;
+    left: 10px;
+    font-size: 30px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    animation: pws-cb-bot-pending steps(4, end) 1s infinite;
+    content: "\2026";
+    width: 0px;
+}
+
+@keyframes pws-cb-bot-pending {
+  to {
+    width: 1.25em;    
+  }
+}
+

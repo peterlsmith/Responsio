@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+    <display-name>Responsio Service</display-name>
+
+    <servlet>
+        <servlet-name>Responsio Service</servlet-name> 
+        <servlet-class>com.paradoxwebsolutions.bot.ChatService</servlet-class>
+        <init-param>
+            <param-name>service</param-name>
+            <param-value>responsio</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Responsio Service</servlet-name>
+        <url-pattern>/responsio/*</url-pattern>
+    </servlet-mapping>
+
+    <security-constraint>
+        <display-name>Responsio Administration</display-name>
+        <web-resource-collection>
+            <url-pattern>/responsio/refresh/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+
+        <auth-constraint>
+            <role-name>responsio-admin</role-name>
+        </auth-constraint>
+        
+    </security-constraint>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>default</realm-name>
+    </login-config>
+
+</web-app>

@@ -1,0 +1,81 @@
+{
+    "intent" : "get_weather",
+    "ners" : {
+        "ner-1": {
+            "type": "com.paradoxwebsolutions.assistant.ners.NERDefault",
+            "input": "tokens"
+        }
+    },
+    "train": [{
+            "type": "categorizer",
+            "name": "default",
+            "data": "default",
+            "pipeline": "train"
+        },{
+            "type": "ner",
+            "name": "ner-1",
+            "data": "default",
+            "pipeline": "train",
+            "parameters": {
+                "input": "ner",
+                "cutoff": 1,
+                "iterations": 70
+            }
+        }
+    ],
+    "entities": {
+        "temporal": {
+          "local": true
+        }
+    },
+    "data": {
+        "default" : {
+            "en": [
+                "what is the weather?",
+                "what is the weather forecast?",
+                "What is the weather like in {location:Boise, Idaho}?",
+                "Is it going to rain in {location:New York} {temporal:today}?",
+                "Tell me the forecast for {location:Houston, TX} {temporal:tomorrow}",
+                "Tell me the forecast for {temporal:Wednesday} in {location:Columbus}",
+                "Tell me the forecast for {location:Alamora}",
+                "Is it going to be sunny {temporal:tomorrow}?",
+                "Is it going to rain {temporal:tomorrow}?",
+                "When is the rain arriving {temporal:today} in {location:LA}?",
+                "Can you tell me the weather for {location:Yorktown}",
+                "Can you tell me the forecast for {location:Middlesburg}",
+                "Can you tell me the weather for {location:Yorktown} for {temporal:next week}",
+                "Can you tell me the weather for {location:New Orleans} this {temporal:week}",
+                "Is it going to rain in the {location:White Mountains} on {temporal:Thursday}?",
+                "How is the weather in {location:Jericho} {temporal:today}?",
+                "Is it going to be nice and cool in {location:Fresco} {temporal:tomorrow}?",
+                "Is it warm in {location:Death Valley} {temporal:today}?",
+                "How is the weather in {location:Toronto} {temporal:currently}?",
+                "What's it going to be like in {location:Springfield, MD} {temporal:next week}?",
+                "Can you give me the weather for {location:LA} for {temporal:tomorrow}?",
+                "What's the forecast for {location:Philadelphia}?",
+                "What's the forecast for {location:Boston} on {temporal:Wednesday}?",
+                "What is the weather in {location:Richmond} this {temporal:weekend}?",
+                "Are there any thunderstorms forecast for {temporal:tonight} in {location:Miami}?",
+                "Give me the forecast for {location:Baja} on {temporal:Monday}?",
+                "What's the weather in {location:Tuscon} on {temporal:Tuesday}?",
+                "I want the forecast for {location:Charlotte} on {temporal:Wednesday}?",
+                "What's the weather going to be like in {location:New York} on {temporal:Thursday}?",
+                "What's the weather in {location:Memphis} on {temporal:Friday}?",
+                "Forecast for {location:Seattle} on {temporal:Saturday}?",
+                "What's the weather in {location:Portland} on {temporal:Sunday}?",
+                "What's the weather going to be like in {location:Houston} on {temporal:Tuesday}?",
+                "What's the forecast for {location:Tampa} on {temporal:Monday}?",
+                "What's the forecast for {location:Tampa} {temporal:next weekend}?",
+                "What's the weather going to be like on {temporal:Saturday} in {location:Kingston}?",
+                "Weather in {location:Denver} on {temporal:Wednesday}?",
+                "What's the weather forecast for {location:Phoenix} on {temporal:Thursday}?",
+                "What is the forecast for {location:Dublin} this coming {temporal:week}?",
+                "I need the weather forecast for {location:Dallas} {temporal:next week}?",
+                "Give me the forecast for {location:Albuquerque} this {temporal:week}",
+                "Give me the forecast for {location:washington DC}",
+                "Give me the forecast for {location:Sacramento} on {temporal:Tuesday}",
+                "Weather for {location:Witicha}?"
+            ]
+        }
+    }
+}

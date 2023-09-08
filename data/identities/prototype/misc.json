@@ -1,0 +1,18 @@
+{
+    "default-intent": "oos",
+    "languages": [ "en", "fr"],
+    "welcome": {
+        "type": "com.paradoxwebsolutions.assistant.actions.ActionList",
+        "actions": [{
+            "type": "com.paradoxwebsolutions.assistant.actions.ActionUtter",
+            "utterance": "welcome"
+        },{
+            "type": "com.paradoxwebsolutions.assistant.actions.ActionUtter",
+            "utterance": "help"
+        }]
+    },
+    "welcome-back": {
+        "type": "com.paradoxwebsolutions.assistant.actions.ActionUtter",
+        "utterance": "welcome-back"
+    }
+}

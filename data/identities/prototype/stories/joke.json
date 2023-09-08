@@ -1,0 +1,12 @@
+{
+    "path": [{
+        "type": "com.paradoxwebsolutions.assistant.steps.StepDefault",
+        "intentMatcher": {
+            "type": "com.paradoxwebsolutions.assistant.intentMatchers.IntentMatcherDefault",
+            "intent": "joke"
+        },
+        "action": {
+            "type": "ActionJoke"
+        }
+    }]
+}

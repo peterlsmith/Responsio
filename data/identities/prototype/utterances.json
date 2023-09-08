@@ -1,0 +1,47 @@
+{
+    "welcome" : {
+        "en": "Hello, and welcome to The Weather Chatbot - guaranteed 100% inaccurate forecasts for any location!",
+        "fr": "Bonjour et bienvenue sur le chatbot météo - prévisions garanties 100% inexactes pour n'importe quel endroit!"
+    },
+    "help": {
+        "en": "You can ask me questions like \"What is the weather forecast for Seattle on Wednesday?\"",
+        "fr": "Vous pouvez me poser des questions telles que \"Quelles sont les prévisions météo pour Seattle Mercredi ?\""
+    },
+    "welcome-back" : {
+        "en": "Welcome back!",
+        "fr": "Content de te revoir!"
+    },
+    "greet" : {
+        "en": "Hello, and welcome to newsletter chatbot. How are you today?",
+        "fr": "Bonjour et bienvenue sur le chatbot de la newsletter. Comment vas-tu aujourd'hui?"
+    },
+    "happy" : {
+        "en": "I'm glad to hear that!",
+        "fr": "Je suis content de l'entendre!"
+    },
+    "cheer" : {
+        "en": "I'm sorry to hear that. Would you like me to tell you a joke to cheer you up?",
+        "fr": "Je suis désolé d'entendre ça. Voulez-vous que je vous raconte une blague pour vous remonter le moral ?"
+    },
+    "better" : {
+        "en": "Did that help?",
+        "fr": "Cela a-t-il aidé?"
+    },
+    "oos" : {
+        "en": "I'm sorry, but I did not understand that. Could you please rephrase it?",
+        "fr": "Je suis désolé, mais je n'ai pas compris. Pourriez-vous s'il vous plaît reformuler?"
+    },
+    "weather" : {
+        "en": "You have asked for the weather",
+        "fr": "Je suis désolé!"
+    },
+    "weather_with_location" : {
+        "en": "You have asked for the weather for ${location}",
+        "fr": "Je suis désolé!"
+    },
+    "weather_with_temporal" : {
+        "en": "You have asked for the weather with temporal",
+        "fr": "Je suis désolé!"
+    }
+
+}

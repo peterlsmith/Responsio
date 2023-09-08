@@ -1,0 +1,13 @@
+{
+    "default": {
+        "type": "com.paradoxwebsolutions.assistant.categorizers.CategorizerDefault",
+        "defaultConfidenceThreshold": 0.75,
+        "input": "tokens",
+        "trainingInput": "tokens"
+    },
+    "regex": {
+        "type": "com.paradoxwebsolutions.assistant.categorizers.CategorizerRegex",
+        "input": "sentence",
+        "trainingInput": "document"
+    }
+}

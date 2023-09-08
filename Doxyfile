@@ -1,0 +1,10 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "DoxyTest"
+OUTPUT_DIRECTORY       = "doc"
+OUTPUT_LANGUAGE        = English
+RECURSIVE              = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+GENERATE_LATEX         = NO

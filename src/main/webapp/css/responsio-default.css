@@ -1,0 +1,52 @@
+
+:root {
+
+  --window-position: fixed;
+  --window-top: calc(100vh - 30px);
+  --window-bottom: auto;
+  --window-left: auto;
+  --window-right: 80px;
+  --window-popup-time: 0.6s;
+
+  --window-bg-color: white;
+  --window-width: 240px;
+  --window-height: 480px;
+  --window-margin: 0;
+  --window-border-color: #ccc;
+  --window-border-width: 1px;
+  --window-border-style: solid;
+  --window-border-radius: 2px;
+
+  
+/*
+  --handle-display: block;
+  --handle-border-color: #ccc;
+  --handle-border-width: 1px;
+  --handle-border-style: solid;
+  --handle-border-radius: 2px;
+  --handle-bg-color: #f7f7f7;
+*/
+  --title-display: block;
+  --title-bg-color: #f7f7f7;
+  --title-font-size: 1rem;
+  --title-height: 200%;
+  --title-position: center;
+
+  --footer-bg-color: #f7f7f7;
+
+  --message-font-size: 0.85rem;
+  --message-border-radius: 20px;
+
+  --user-background-color: limegreen;
+  --user-text-color: white;
+  --user-border-color: #eee;
+
+  --bot-background-color: #eee;
+  --bot-text-color: black;
+  --bot-border-color: red;
+
+
+  --input-background-color: white;
+  --input-font-size: 0.8rem;
+  --input-height: 38px;
+}

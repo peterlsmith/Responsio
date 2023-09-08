@@ -1,0 +1,67 @@
+[
+    {
+        "comment": "Detect which language is being used",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorLanguage",
+        "input": "document",
+        "output": "language",
+        "pipelines": ["chat"]
+    },
+    {
+        "comment": "Convert the input to lower case",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorLowercase",
+        "input": "document",
+        "output": "sentence"
+    },
+    {
+        "comment": "Remove certain punctuation that doesn't help",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorReplace",
+        "input": "sentence",
+        "output": "sentence",
+        "replacements" : {
+            "[\\s,.!?]+": " "
+        }
+    },
+    {
+        "comment": "Expand any contractions",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorExpander",
+        "input": "sentence",
+        "output": "sentence"
+    },
+    {
+        "comment": "Output specifically for NER training",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorCopy",
+        "input": "sentence",
+        "output": "ner",
+        "pipelines": ["train"]
+    },
+    {
+        "comment": "Filter NER tags",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorNERFilter",
+        "input": "sentence",
+        "output": "sentence",
+        "pipelines": ["train"]
+    },
+    {
+        "comment": "Replace emails with a fixed token 'email_token'",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorReplace",
+        "input": "sentence",
+        "output": "sentence",
+        "replacements": {
+            "[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*" : "email_token"
+        }
+    },
+    {
+        "comment": "Tokenize",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorTokenizer",
+        "delimiters": "[\\s,.!?]+",
+        "input": "sentence",
+        "output": "tokens"
+    },
+    {
+        "comment": "Copy output for generic training",
+        "type": "com.paradoxwebsolutions.assistant.preprocessors.PreprocessorCopy",
+        "input": "tokens",
+        "output": "train",
+        "pipelines": ["train"]
+    }
+]

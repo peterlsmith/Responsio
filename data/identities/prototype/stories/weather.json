@@ -1,0 +1,26 @@
+{
+    "path": [{
+        "type": "com.paradoxwebsolutions.assistant.steps.StepOr",
+        "steps": [{
+            "type": "com.paradoxwebsolutions.assistant.steps.StepDefault",
+            "intentMatcher": {
+                "type": "com.paradoxwebsolutions.assistant.intentMatchers.IntentMatcherExpression",
+                "expression": "get_weather and location"
+            },
+            "action": {
+                "type": "com.paradoxwebsolutions.assistant.actions.ActionUtter",
+                "utterance": "weather_with_location"
+            }
+        },{
+            "type": "com.paradoxwebsolutions.assistant.steps.StepDefault",
+            "intentMatcher": {
+                "type": "com.paradoxwebsolutions.assistant.intentMatchers.IntentMatcherExpression",
+                "expression": "get_weather"
+            },
+            "action": {
+                "type": "com.paradoxwebsolutions.assistant.actions.ActionUtter",
+                "utterance": "weather"
+            }
+        }]
+    }]
+}
