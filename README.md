@@ -1,23 +1,23 @@
 # Responsio
 A lightweight java based chatbot server and javascript client library.
 
-Based on OpenNLP, **Reponsio** is a small, yet highly capable java based chatbot server suitable for deployment in Tomcat or other servlet container. Combined with a small javascript client library for embedding into web sites, it can easily be configured with intents, actions, and stories. With multi-language support, named entity recogniztion, and easy customization on both the server and client side, Responsio can handle most common chatbot scenarios.
+Based on OpenNLP, **Reponsio** is a small, yet highly capable java based chatbot server suitable for deployment in Tomcat or other servlet container. Combined with a small javascript client library for embedding into web sites, it can easily be configured with intents, actions, and stories. With multi-language support, named entity recognition, and easy customization on both the server and client side, Responsio can handle most common chatbot scenarios.
 
 ---
 
 ## Overview
 Like most chatbots, Responsio is based around an **intent** recognition system, the purpose of which is to determine what a user input means. For example, a 'greeting' intent would be determined from user input such as 'hello', 'hi there', 'howdy', 'good morning', etc. Intents may also include named 'entities' - specific things that are important to the intent, such as the location when querying what the weather forecast is, or an email address when requesting further information to be sent. Responsio uses [OpenNLP](https://opennlp.apache.org/) for intent and named entity recognition by default, but also includes support for regular expression intent matching.  
 
-Intents are wrapped with appropriate actions (responses) into stories. A story represents a clearly defined coversation or narrative that is supported by the chatbot. A complete set of intents, stories, and actions is called an identity. A single Responsio server instance may handle multiple chatbot identities.  
+Intents are paired with appropriate actions (responses) and combined into stories. A story represents a clearly defined coversation or narrative that is supported by the chatbot. A complete set of intents, stories, and actions is called an identity. A single Responsio server instance may handle multiple chatbot identities.  
 
-Responsio uses a number of simple json files to configure an identity. This includes the intents, stories, named entities (parameters), and utterances (output actions), as well as more fine control over the categorizers (for intent recognition), and the input processing pipeline.
+Responsio uses a number of simple json files to configure an identity. This includes the intents, stories, named entities, and utterances (output actions), as well as more fine control over the categorizers (for intent recognition), and the input processing pipeline.
 
 ---
 
 ## Terminology
 Throughout this documentation, the following terminology is used.
 
- - **identity** a specific chatbot instance (persona), represented by a set of stories designed to address a given problem domain. Each identity withing a running Responsio instance must have a unique name.
+ - **identity** a specific chatbot instance (persona), represented by a set of stories designed to address a given problem domain. Each identity within a running Responsio instance must have a unique name.
 
  - **story** a series of intents and corresponding actions that make up a defined conversation - for example, a story for inquiring about the status of an order will likely contain intents to determine when a customer is requesting order information and to extract order IDs, along with actions to look up the order and return the information back to the customer.
 
@@ -29,7 +29,7 @@ Throughout this documentation, the following terminology is used.
 
  - **categorizer** a component of the chatbot that attempts to determine the intent of a user input. Categorizers usually take the user input and assign a probability to each configured intent indicating how likely that intent matches what the user is saying.
 
- - **training** the process of configuring an individual component of the chatbot system to correctly identify or recognize user input specific to the chatbot identity. In some cases, such as OpenNLP components, training may require significant processing to produce statistical models, while in other cases, such as regular expression components, it is more akin to a setting a simple configuration parameter or two. However, in both cases, the process has been abstracted into a generic 'training' step.
+ - **training** the process of configuring an individual component of the chatbot system to correctly identify or recognize user input specific to the identity. In some cases, such as OpenNLP components, training may require significant processing to produce statistical models, while in other cases, such as regular expression components, it is more akin to a setting a simple configuration parameter or two. However, in both cases, the process has been abstracted into a generic 'training' step.
 
  - **entity** (or **named entity**) A specific value extracted from the user input that is relevant to the coversation. For example, a location, time, name, etc.  
 
@@ -94,10 +94,10 @@ data/models/opennlp/lang.bin
 ## Deploying
 Responsio is designed to be deployed in a servlet container such as Tomcat using the war file build product.
 
-Operationally, Responsio requires one initialization parameter to define a root location on disk that will be used for assistant configuration and logging. Generally, this is configured via the servlet container - for example, by adding the following line to <code>context.xml</code> in the <code>&lt;Context></code> element.
+Operationally, Responsio requires one initialization parameter to define a root directory that will be used for assistant configuration and logging. Generally, this is configured via the servlet container - for example, by adding the following line to <code>context.xml</code> in the <code>&lt;Context></code> element.
 
 <pre>
-  &lt;Parameter name="chatbot-0.1"
+  &lt;Parameter name="responsio.workdir"
     value="&lt;directory>"
     override="true"
     description="Root working directory for this application"/>
@@ -110,30 +110,45 @@ Alternatively, this may be configured in the application web.xml file manually p
 
 <pre>
     &lt;init-param>
-        &lt;param-name>chatbot-0.1&lt;/param-name>
+        &lt;param-name>responsio.workdir&lt;/param-name>
         &lt;param-value>&lt;directory>&lt;/param-value>
     &lt;/init-param>
 </pre>
 
-## Configuring
+## Setup
 
-The operational directory used by Responsio contains the main application configuration that may be changed periodically - such as logging levels, supported identities, etc. Many of these configuration parameters can be overridden by assistant specific values. The general structure of this directory is as follows:
+The operational directory used by Responsio contains the following:
 
+ - The main application configuration that may be changed periodically - such as logging levels, supported identities, etc. Many of these configuration parameters can be overridden by assistant specific values.
+
+ - Identity configuration files and data.
+
+ - Log files. Responsio writes a service level log file **responsio.log** and identity specific logs files.
+
+The directory structure is as follows:
 <pre>
     &lt;root directory>
             |
             |-- cfg
             |    |
-            |    |- chat.properties
+            |    |- responsio.properties
+            |
+            |-- identity
+            |    |
+            |    |- prototype
+            |    |...
+            |
+            |-- logs
 </pre>
 
+A baseline version of <code>responsio.properties</code> can be found in the projects <code>data</code> directory.
 
 ---
 
 ## Creating an Identity
-An idenity is built from a series of configuration files, each of which controls some aspect of the identity, such as an intent, utterance, action, story, etc. Once all the configuration files have been created, **training** must be performed. Training builds the NLP models and compiles all the neccessary operational configuration into a single file. See the separate [identity configuration](docs/md/IdentityConfiguration.md) documentation for details of these configurtion files as well as how to perform the necessary training to build the models.  
+An identity is built from a series of configuration files, each of which controls some aspect of the identity, such as an intent, utterance, action, story, etc. Once all the configuration files have been created, **training** must be performed. Training builds the NLP models and assembles all the neccessary operational configuration, along with model files. See the separate [identity configuration](docs/md/IdentityConfiguration.md) documentation for details of these configurtion files.  
 
-Responsio comes with an example identity 'prototype'. You can find the configuration files for this in the <code>data/identities/prototype</code> directory.
+Responsio comes with an example identity 'prototype' which demonstrates much of the available functionality. You can find the configuration files for this in the <code>data/identities/prototype</code> directory.
 
 
 ---
