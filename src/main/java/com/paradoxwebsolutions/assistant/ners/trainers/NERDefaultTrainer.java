@@ -122,7 +122,7 @@ public class NERDefaultTrainer implements Trainer {
                 /* Now set the model name on the NER itself */
 
                 ner.setModel(language, modelFilename);
-
+                context.files.add(modelFilename);
         }
         catch (Exception x) {
             throw new ApplicationError(String.format("Failed training language %s for intent %s", language, intent), x);

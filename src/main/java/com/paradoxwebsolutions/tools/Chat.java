@@ -5,16 +5,17 @@ import com.paradoxwebsolutions.assistant.Assistant;
 import com.paradoxwebsolutions.assistant.AssistantFactory;
 import com.paradoxwebsolutions.assistant.ClientResponse;
 import com.paradoxwebsolutions.assistant.ClientSession;
-import com.paradoxwebsolutions.assistant.IdentityClassLoader;
+import com.paradoxwebsolutions.assistant.IdentityArchive;
 import com.paradoxwebsolutions.assistant.SessionData;
+import com.paradoxwebsolutions.core.ClassLoader;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.CustomConsoleHandler;
 import com.paradoxwebsolutions.core.ObjectFactory;
-import com.paradoxwebsolutions.core.ServiceAPI;
 
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,32 +68,23 @@ class Chat extends Tool {
      * @throws Exception on any error
      */
     public Chat(final String identity) throws Exception {
-        super();
+        super("chat");
 
         /* Get identity specific configuration required by assistant */
 
         Config localConfig = config.getConfig("identity.default").load(config.getConfig("identity." + identity));
-        String modelDir = config.getString("dir.model") + File.separator + identity;
-        localConfig.setString("dir.model", modelDir);
+        String modelDir = config.getString("dir.identity") + File.separator + identity;
+        localConfig.setString("dir.identity", modelDir);
         localConfig.setString("identity", identity);
+        localConfig.set("service.api", this);
 
-
-        /* Create a class loader for this identity so it can isolate any custom code */
-
-        IdentityClassLoader classLoader = new IdentityClassLoader(this);
-        classLoader.loadClasses(modelDir + File.separator + "extensions");
-
-
-        /* Deserialize the assistant controller */
-
-        Assistant assistant = (new AssistantFactory(classLoader)).fromJson(new File(modelDir + File.separator + "assistant.json"), Assistant.class);
-        agent = new Agent(assistant, localConfig);
+        agent = new Agent(localConfig);
 
 
         /* Set up a session */
 
         SessionData sessionData = new SessionData(identity, "test-user");
-        session = new ClientSession(sessionData, assistant);
+        session = new ClientSession(sessionData, agent.getAssistant());
 
 
         /* Disable some annoying networking logging */
@@ -101,17 +93,6 @@ class Chat extends Tool {
         Logger.getLogger("jdk.internal.httpclient.hpack.debug").setLevel(Level.WARNING);
         Logger.getLogger("jdk.internal.httpclient.debug").setLevel(Level.WARNING);
         Logger.getLogger("jdk.event.security").setLevel(Level.WARNING);
-    }
-
-
-
-    /**
-     * Returns the name of this service.
-     *
-     * @return  the name of this service
-     */
-    public String getServiceName() {
-        return "chat";
     }
 
 

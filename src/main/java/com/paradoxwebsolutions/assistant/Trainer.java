@@ -3,7 +3,7 @@ package com.paradoxwebsolutions.assistant;
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.Logger;
-import com.paradoxwebsolutions.core.ServiceAPI;
+//import com.paradoxwebsolutions.core.ServiceAPI;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public interface Trainer {
 
         /** A reference to the service API */
 
-        public ServiceAPI   service;
+//        public ServiceAPI   service;
 
 
         /** The directory to be used for any data files for this assistant */
@@ -72,6 +72,10 @@ public interface Trainer {
         /** Any training configuration */
 
         public Config       config;
+
+        /** Returned list of generated files */
+
+        public List<String> files;
     }
 }
 

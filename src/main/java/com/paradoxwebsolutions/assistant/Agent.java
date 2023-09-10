@@ -1,5 +1,7 @@
 package com.paradoxwebsolutions.assistant;
 
+import com.paradoxwebsolutions.core.ClassInitializer;
+import com.paradoxwebsolutions.core.ClassLoader;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.CustomLogHandler;
@@ -61,38 +63,63 @@ public class Agent {
     /**
      * Creates an agent instance.
      *
-     * @param assistant       the assistant configuration
-     * @param identityConfig  identity specific configuration for this agent
+     * @param config            identity specific configuration for this agent
      * @throws ApplicationError if an error occurs during initialization
      */
-    public Agent(Assistant assistant, Config identityConfig) throws ApplicationError {
-        assert identityConfig != null : "Null identity configuration passed to Agent";
-        assert assistant != null : "Null assistant configuration passed to Agent";
+    public Agent(final Config config) throws ApplicationError {
+
+        assert config != null : "Null identity configuration passed to Agent";
+
+        /* Get basic configuration - our identity and the location of our archive */
+
+        identity = config.getString("identity");
+        if (identity == null) throw new ApplicationError("Invalid assistant configuration - no identity name");
+
+        String identityDir = config.getString("dir.identity");
+
+
+        /* Set up the identity archive so we can load data from it */
+
+        IdentityArchive archive = new IdentityArchive(identityDir + File.separator + identity + ".zip");
+
+
+        /*
+         * Create a class loader and initializer for this identity and load and extensions from the
+         * archive - we might need these to deserialize the assistant itself.
+         */
+        ClassLoader classLoader = new ClassLoader();
+        ClassInitializer classInitializer = new ClassInitializer();
+
+        for (String extension : archive.getFiles("extensions/.*\\.class")) {
+            Class<?> cls = classLoader.loadClass(archive.getInputStream(extension));
+            classInitializer.initialize(cls, config, archive);
+        }
+
+
+        /* Deserialize the assistant controller */
+
+        assistant = (new AssistantFactory(classLoader)).fromJson(archive.getInputStream("assistant.json"), Assistant.class);
 
 
         /* Verify configuration */
 
-        this.config = identityConfig;
-        this.assistant = assistant;
-        this.identity = assistant.getIdentity();
-        if (this.identity == null) throw new ApplicationError("Invalid assistant configuration - missing name");
-
-        lang = identityConfig.getString("lang", "en");
+        this.config = config;
+        lang = config.getString("lang", "en");
 
 
         /* Set up any configured logger for this identity */
 
-        LOGGER = new Logger(this.identity, identityConfig.getConfig("log"));
+        LOGGER = new Logger(identity, config.getConfig("log"));
         LOGGER.info("Initializing Agent");
 
         /* Initialize the assistant */
 
-        new ObjectInitializer().initialize(assistant, assistant, identityConfig, LOGGER);
+        new ObjectInitializer().initialize(assistant, assistant, config, LOGGER, archive);
 
 
         /* Create the interpreter */
 
-        this.interpreter = new Interpreter(assistant, identityConfig);
+        interpreter = new Interpreter(assistant, config);
 
         LOGGER.info("Agent initialized");
     }
@@ -135,9 +162,6 @@ public class Agent {
         Stack<Narrative> narratives = new Stack<Narrative>();
         List<IntentData> history = Arrays.asList(session.getSessionData().getHistory());
         boolean historyChanged = false; /* tracks whether or not the history needs to be updated */
-
-System.out.println((new com.paradoxwebsolutions.core.ObjectFactory()).toJson(history));
-System.out.println((new com.paradoxwebsolutions.core.ObjectFactory()).toJson(session.getSlots()));
 
 
         while (history.size() > 0) {

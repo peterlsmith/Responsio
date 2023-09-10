@@ -20,7 +20,9 @@ import com.google.gson.JsonSerializationContext;
 /**
  * Utility class used to serialize {@link Assistant} objects from json.
  * <p>This class extends {@link com.paradoxwebsolutions.core.ObjectFactory} to provide
- * customizer loaders for assistant polymorphic classes.
+ * customizer loaders for assistant polymorphic classes by automatically adding a 
+ * type attribute on serialization, and by reading the type value on deserialization to
+ * create the appropriate class instance.
  *
  * @author Peter Smith
  * @see com.paradoxwebsolutions.core.ObjectFactory
@@ -51,79 +53,61 @@ public class AssistantFactory extends ObjectFactory {
         registerHandler(Preprocessor.class,  new AssistantObjectSerializer<Preprocessor>());
         registerHandler(Step.class,          new AssistantObjectSerializer<Step>());
 
-
-        registerHandler(Action.class,        new AssistantObjectDeserializer<Action>(classLoader));
-        registerHandler(Categorizer.class,   new AssistantObjectDeserializer<Categorizer>(classLoader));
-        registerHandler(IntentMatcher.class, new AssistantObjectDeserializer<IntentMatcher>(classLoader));
-        registerHandler(NER.class,           new AssistantObjectDeserializer<NER>(classLoader));
-        registerHandler(Preprocessor.class,  new AssistantObjectDeserializer<Preprocessor>(classLoader));
-        registerHandler(Step.class,          new AssistantObjectDeserializer<Step>(classLoader));
-    }
-}
-
-
-
-/**
- * Serializes instances of assistant component classes.
- * All assistant component classes follow the same pattern when represented by json
- * and can be serialized by this generic handler.
- */
-class AssistantObjectSerializer<T> implements ObjectFactory.Serializer<T> {  
-
-    /**
-     * Serialization method.
-     * @see ObjectFactory.Serializer
-     */
-    @Override
-    public JsonElement serialize(T t, Type type, JsonSerializationContext context) throws Exception {
-
-        JsonElement element = context.serialize(t);
-        element.getAsJsonObject().addProperty("type", t.getClass().getName());
-
-        return element;
-    }
-}
-
-
-
-/**
- * Customized deserialization support for some assistant config entities.
- */
-class AssistantObjectDeserializer<T> implements ObjectFactory.Deserializer<T> {
-
-    /** The class loader (if configured) */
-
-    private ClassLoader classLoader;
-
-
-    /**
-     * Creates a custom object deserializer.
-     * <p>This creates a custom object deserializer that utilizes a given class loader.
-     *
-     * @param classLoader  the class loader to use for object instantiation
-     */
-    public AssistantObjectDeserializer(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+        registerHandler(Action.class,        new AssistantObjectDeserializer<Action>());
+        registerHandler(Categorizer.class,   new AssistantObjectDeserializer<Categorizer>());
+        registerHandler(IntentMatcher.class, new AssistantObjectDeserializer<IntentMatcher>());
+        registerHandler(NER.class,           new AssistantObjectDeserializer<NER>());
+        registerHandler(Preprocessor.class,  new AssistantObjectDeserializer<Preprocessor>());
+        registerHandler(Step.class,          new AssistantObjectDeserializer<Step>());
     }
 
 
 
     /**
-     * Deserialization method.
-     * @see ObjectFactory.Deserializer
+     * Serializes instances of assistant component classes.
+     * All assistant component classes follow the same pattern when represented by json
+     * and can be serialized by this generic handler.
      */
-    @Override
-    public T deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws Exception {
+    private class AssistantObjectSerializer<T> implements ObjectFactory.Serializer<T> {  
 
-        /* Get the class name of the object we want to create */
+        /**
+        * Serialization method.
+        * @see ObjectFactory.Serializer
+        */
+        @Override
+        public JsonElement serialize(T t, Type type, JsonSerializationContext context) throws Exception {
 
-        JsonObject jsonObject = json.getAsJsonObject();
-        String className = jsonObject.get("type").getAsString();
+            JsonElement element = context.serialize(t);
+            element.getAsJsonObject().addProperty("type", t.getClass().getName());
+
+            return element;
+        }
+    }
 
 
-        /* Load the appropriate class and deserialize into it */
 
-        Class<?> cls = classLoader.loadClass(className);
-        return context.deserialize(jsonObject, cls);
+    /**
+     * Customized deserialization support for some assistant config entities.
+     */
+    private class AssistantObjectDeserializer<T> implements ObjectFactory.Deserializer<T> {
+
+        /**
+        * Deserialization method.
+        * @see ObjectFactory.Deserializer
+        */
+        @Override
+        public T deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws Exception {
+
+            /* Get the class name of the object we want to create */
+
+            JsonObject jsonObject = json.getAsJsonObject();
+            String className = jsonObject.get("type").getAsString();
+
+
+            /* Load the appropriate class and deserialize into it */
+
+            Class<?> cls = classLoader.loadClass(className);
+            return context.deserialize(jsonObject, cls);
+        }
     }
 }

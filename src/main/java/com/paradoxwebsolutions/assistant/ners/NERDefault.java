@@ -10,6 +10,7 @@ import com.paradoxwebsolutions.assistant.ners.trainers.NERDefaultTrainer;
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.Logger;
+import com.paradoxwebsolutions.core.ResourceAPI;
 import com.paradoxwebsolutions.core.StringMap;
 import com.paradoxwebsolutions.core.annotations.Init;
 
@@ -57,24 +58,21 @@ public class NERDefault implements NER {
     /**
      * Loads the language model files for this NER instance.
      * 
-     * @param config  the assistant specific configuration
-     * @param logger  the assistant logger
+     * @param resource  resource API for loading data files
+     * @param logger    the assistant logger
      * @throws ApplicationError on error loading the language models
      */
     @Init
-    public void init(Config config, Logger logger) throws ApplicationError {
-
-        String modelDir = config.getString("dir.model") + File.separator;
+    public void init(ResourceAPI resource, Logger logger) throws ApplicationError {
 
         /* Load the name find models for all supported languages */
 
         for (String language : models.keySet()) {
-    
-            String modelFilename = modelDir + models.get(language);
+            String filename = models.get(language);
 
             try {
 
-                TokenNameFinderModel nerModel = new TokenNameFinderModel(new File(modelFilename));
+                TokenNameFinderModel nerModel = new TokenNameFinderModel(resource.getInputStream(filename));
                 NameFinderME nameFinder = new NameFinderME(nerModel);
                 nameFinder.clearAdaptiveData();
                 nameFinders.put(language, nameFinder);
@@ -86,7 +84,7 @@ public class NERDefault implements NER {
                         ));
             }
             catch (Exception x) {
-                throw new ApplicationError(String.format("Failed to load model file '%s': %s", modelFilename, x.getMessage()));
+                throw new ApplicationError(String.format("Failed to load model file '%s'", filename, x));
             }
         }
 

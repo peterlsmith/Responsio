@@ -148,17 +148,6 @@ public class Config extends GenericMap {
 
 
     /**
-     * Returns an array of all the parameter names in this Config instance.
-     * @return an array of Strings containing the names of all parameters in this
-     *          Config instance.
-     */
-//    public String[] getNames() {
-//        return config.stringPropertyNames().toArray(new String[config.size()]);
-//    }
-
-
-
-    /**
      * Converts this Config instance into properties type string.
      * The format of the output is suitable for loading back into a Config instance
      * using the load(File) method.

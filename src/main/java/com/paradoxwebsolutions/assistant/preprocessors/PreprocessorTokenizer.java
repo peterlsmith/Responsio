@@ -1,13 +1,9 @@
 package com.paradoxwebsolutions.assistant.preprocessors;
 
-import com.paradoxwebsolutions.assistant.Preprocessor;
 import com.paradoxwebsolutions.assistant.ClientSession;
-import com.paradoxwebsolutions.core.GenericMap;
-import com.paradoxwebsolutions.core.ServiceAPI;
 
 import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
+
 
 /**
  * Input preprocessor to perform tokenization.

@@ -18,162 +18,59 @@ import java.util.stream.IntStream;
 
 
 /**
- * Handles class loading and initialization for code 'modules'.
+ * Handles class level initialization for code 'modules'.
  * <p>Code modules are simply java classes that are not explicitly
  * referenced by any active code (and are thus not automatically loaded and initialized). Code
- * modules generally provide functionalaity extensions or implementations of interfaces, 
- * and must be specifically loaded and
- * an initialization method invoked so that they can register their functionality.
- * This class also supports the registration of class level annotations, along with a lambda
- * function that will be invoked when the annotation is found on a class.
+ * modules generally provide functionality extensions or implementations of interfaces, 
+ * and are generally loaded then have an initialization method invoked so that they can
+ * register their functionality.
  *
  * @author Peter Smith
  */
 public class ClassInitializer {
 
     /**
-     * Defines the interface used for annotation executors.
-     * <p>Annotation executors are invoked by the module loader when loading a class and
-     * an instance of the annotation is found on the class.
-     *
-     * @author Peter Smith
-     */
-    @FunctionalInterface
-    public interface Executor<T> {
-        /**
-         * Executor callback function.
-         * 
-         * @param t     the annotation instance found on the class
-         * @param cls   the Class instance for the class that has been annotated
-         * @throws ApplicationError on error
-         */
-        void exec(T t, Class cls) throws ApplicationError;
-    }
-
-
-    /** Map of class annotations to look for and invoke */
-
-    private static Map<Class<? extends Annotation>, Executor<Annotation>> executors = new HashMap<>();
-
-
-
-    /**
-     * Registers an annotation to be invoked on class loading.
-     * <p>Note that we wrap the caller provided consumer with another that casts the Annotation
-     * to the required type, otherwise invoking the executors themselves becomes very complicated.
-     *
-     * @param cls       the annotation class instance
-     * @param executor  the executor (lambda) to invoke when the annotation is found
-     * @param <T>       the annotation being registered
-     */
-    public static <T extends Annotation> void registerAnnotation(Class<T> cls, final Executor<T> executor) {
-        executors.put(cls, 
-            (annotation, annotatedClass) -> executor.exec(cls.cast(annotation), annotatedClass)
-        );
-    }
-
-
-    /** The class loader that will be used for loading the classes */
-
-    private ClassLoader loader;
-
-
-
-    /**
-     * Creates a module loader instance with a default class loader.
-     */
-    public ClassInitializer() {
-        loader = this.getClass().getClassLoader();
-    }
-
-
-
-    /**
-     * Creates a module loader instance with a given class loader.
-     * <p>This constructor provides for code isolation by using compartmentalized class
-     * loaders (class loaders associated with a given scope/application/client).
-     *
-     * @param loader  the classloader to be used for loading new classes
-     */
-    public ClassInitializer(final ClassLoader loader) {
-        assert loader != null : "Invalid class loader provided to ClassInitializer";
-        this.loader = loader;
-    }
-
-
-
-    /**
-     * Load and initialize a module.
-     * <p>A module is simply a named class that must exist somewhere on the class path.
+     * Initialize a class.
+     * <p>This method looks for static methods with the @Init annotation and invokes them with
+     * any of the supplied arguments.
      * 
-     * @param name    the fully qualified class name to load
-     * @param args    typed arguments available to be passed through to the module initialization (if available)
-     * @return        a class instance representing the loaded class.
+     * @param cls     the class to be initialized
+     * @param args    an array of typed arguments available to be passed through to any annotated method
      * @throws ApplicationError if the module could not be loaded for any reason
      */
-    public Class<?> loadModule(final String name, final Object ...args) throws ApplicationError {
-
+    public void initialize(final Class<?> cls, final Object ...args) throws ApplicationError {
         try {
-            final Class<?> cls = this.getClass().forName(name, true, loader);
 
-            /* Scan the class for registered annotations */
-
-            for (Class<? extends Annotation> annotationClass : executors.keySet()) {
-                Annotation[] annotations = cls.getDeclaredAnnotationsByType(annotationClass);
-                if (annotations.length > 0) {
-                    Executor<Annotation> executor = executors.get(annotationClass);
-                    for (Annotation annotation : annotations) {
-                        executor.exec(annotationClass.cast(annotation), cls);
-                    }
-                }
-            }
-
-            /* Scan the class methods for initialization (the @Init annotation) */
+            /* Scan the class static methods for initialization (the @Init annotation) */
 
             Method[] methods = cls.getDeclaredMethods();
             for (Method method : methods) {
                 if (Modifier.isStatic(method.getModifiers())) {
                     Init annotation = method.getAnnotation(Init.class);
                     if (annotation != null) {
-                        invokeMethod(null, method, args);
+                        Object[] input = buildArgumentList(method, args);
+                        method.invoke(null, input);
                     }
                 }
             }
-
-            return cls;
         }
-        catch (ClassNotFoundException x) {
-            throw new ApplicationError(String.format("Invalid module '%s' - not found", name));
+        catch (Exception x) {
+            throw new ApplicationError(String.format("Failed to initialize class '%s'", cls.getName()), x);
         }
     }
 
 
     /**
-     * Invoke a static class method with some arguments.
-     * <p>This implementation allows flexibility in the arguments required by the static method being invoked.
-     * It matches available arguments provided by the caller to the parameters required by the method
-     * using a closest match (least derived) approach. Not all arguments need to be used, but any given
-     * arguments can be used once only. Ordering is not important, with the expection that if two arguments
-     * provide an identical match to a given parameter, the first in the argument list will be used.
-     * This allows a call such as:
-     * <pre>
-     *    ClassInitializer.invokeMethod(method, A a, B b)
-     * </pre>
-     * to match all the following methods:
-     * <pre>
-     *    method()
-     *    method(A a)
-     *    method(B b)
-     *    method(A a, B b)
-     *    method(B b, A a)
-     * </pre>
+     * Invoke a method with some arguments.
+     * <p>This implementation can invoke either a static or an instance method, and allows
+     * flexibility in the arguments required by the method being invoked.
      *
      * @param instance    the object instance on which the method is to be invoked (null if the method is static)
      * @param method      the method to be invoked
      * @param arguments   any additional arguments that should be passed through to the method if needed
      * @throws ApplicationError if the method could not be found or invoked
      */
-     public static void invokeMethod(final Object instance, final Method method, final Object[] arguments) throws ApplicationError {
+    protected static void invokeMethod(final Object instance, final Method method, final Object[] arguments) throws ApplicationError {
 
         try {
             Object[] input = buildArgumentList(method, arguments);
@@ -194,11 +91,29 @@ public class ClassInitializer {
 
     /**
      * Builds an argument list for a method invocation.
+     * <p>This implementation allows flexibility in the arguments required by the method being invoked.
+     * It matches available arguments provided by the caller to the parameters required by the method
+     * using a closest match (least derived) approach. Not all arguments need to be used, but any given
+     * arguments can be used once only. Ordering is not important, with the expection that if two arguments
+     * provide an identical match to a given parameter, the first in the argument list will be used.
+     * This allows a call such as:
+     * <pre>
+     *    ClassInitializer.invokeMethod(method, A a, B b)
+     * </pre>
+     * to match all the following methods:
+     * <pre>
+     *    method()
+     *    method(A a)
+     *    method(B b)
+     *    method(A a, B b)
+     *    method(B b, A a)
+     * </pre>
      *
-     * @param method      the method to be invoked
+     *
+     * @param method      the method that will be invoked
      * @param arguments   any arguments that should be passed through to the method if needed
-     * @return            an argument list as an array of object 
-     * @throws ApplicationError if the method could not be found or invoked
+     * @return            an argument list as an array of object that matches the method
+     * @throws ApplicationError if a suitable argument list could not be created
      */
     private static Object[] buildArgumentList(final Method method, final Object[] arguments) throws ApplicationError {
 
