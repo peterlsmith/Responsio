@@ -9,7 +9,6 @@ import com.paradoxwebsolutions.assistant.Categorizers;
 import com.paradoxwebsolutions.assistant.ClientSession;
 import com.paradoxwebsolutions.assistant.Entities;
 import com.paradoxwebsolutions.assistant.Entity;
-import com.paradoxwebsolutions.assistant.IdentityClassLoader;
 import com.paradoxwebsolutions.assistant.Input;
 import com.paradoxwebsolutions.assistant.Intent;
 import com.paradoxwebsolutions.assistant.NER;
@@ -27,15 +26,22 @@ import com.paradoxwebsolutions.assistant.categorizers.CategorizerDefault;
 import com.paradoxwebsolutions.assistant.ners.NERDefault;
 import com.paradoxwebsolutions.assistant.ners.NERRegex;
 import com.paradoxwebsolutions.assistant.preprocessors.PreprocessorDefault;
+import com.paradoxwebsolutions.core.ApplicationError;
+import com.paradoxwebsolutions.core.ClassInitializer;
+import com.paradoxwebsolutions.core.ClassLoader;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.CustomConsoleHandler;
 import com.paradoxwebsolutions.core.ObjectInitializer;
-import com.paradoxwebsolutions.core.ServiceAPI;
+import com.paradoxwebsolutions.core.ResourceAPI;
+
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,6 +55,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 import com.google.gson.Gson;
@@ -79,6 +87,7 @@ class Train extends Tool {
             Train train = new Train(args[0]);
             train.doTrain();
             train.save();
+            train.zip();
         }
         catch (Exception x) {
             x.printStackTrace();
@@ -94,12 +103,12 @@ class Train extends Tool {
 
     /** The directory location of all the input files */
 
-    private String   dataDir;
+    private String   inputDir;
 
 
     /** The directory location of all the output files */
 
-    private String   modelDir;
+    private String   outputDir;
 
 
     /** Factory used to serialize chat assistant components to/from json */
@@ -122,6 +131,11 @@ class Train extends Tool {
     private Set<String> languages;
 
 
+    /** All the generated identity files */
+
+    private List<String> identityFileList = new ArrayList<>();
+
+
     /**
      * Creates a trainer instance.
      *
@@ -129,28 +143,57 @@ class Train extends Tool {
      * @throws Exception on error
      */
     public Train(final String identity) throws Exception {
-        super();
+        super("train");
         this.identity = identity;
 
-        dataDir = System.getProperty("dir.data");
-        if (dataDir == null) throw new Exception("Missing 'data.dir' property");
-        dataDir = dataDir + File.separator + identity;
+        inputDir = System.getProperty("dir.data");
+        if (inputDir == null) throw new Exception("Missing 'data.dir' property");
+        inputDir = inputDir + File.separator + identity;
 
 
         /* Get identify specific configuration required by assistant */
 
         identityConfig = config.getConfig("identity.default").load(config.getConfig("identity." + identity));
-        modelDir = config.getString("dir.model") + File.separator + identity;
-        identityConfig.setString("dir.model", modelDir);
+        outputDir = config.getString("dir.identity") + File.separator + identity;
+        identityConfig.setString("dir.identity", outputDir);
         identityConfig.setString("identity", identity);
         identityConfig.setBool("training", true);
 
 
         /* Create a class loader and load any custom code files needed by this identity */
 
-        IdentityClassLoader classLoader = new IdentityClassLoader(this);
-        classLoader.loadClasses(modelDir + File.separator + "extensions");
-        
+        ClassLoader classLoader = new ClassLoader();
+        ClassInitializer classInitializer = new ClassInitializer();
+
+        File dir = new File(outputDir + File.separator + "extensions");
+        if (!dir.isDirectory()) {
+            throw new ApplicationError(String.format("Invalid class directory '%s'",  dir.getPath()));
+        }
+
+
+        /* Get a list of the files and load if a java class */
+
+        ResourceAPI api = new ResourceAPI() {
+            @Override
+            public InputStream getInputStream(String name) throws ApplicationError {
+                try {
+                    return new FileInputStream(outputDir + File.separator + name);
+                }
+                catch (Exception x) {
+                    return null;
+                }
+            }
+        };
+
+        for (File file : dir.listFiles()) {
+            if (file.getName().endsWith(".class")) {
+                Class<?> cls = classLoader.loadClass(file);
+
+                classInitializer.initialize(cls, api, identityConfig);
+                identityFileList.add("extensions/" + cls.getSimpleName() + ".class");
+            }
+        }
+
 
         /* Create an object factory that will be used to serialize configuration components */
 
@@ -188,17 +231,66 @@ class Train extends Tool {
     public void save() throws Exception {
         /* Save the assistant configuration file */
 
-        FileWriter cfgWriter = new FileWriter(modelDir + File.separator + "assistant.json");
+        FileWriter cfgWriter = new FileWriter(outputDir + File.separator + "assistant.json");
         String json = objectFactory.toJson(assistant);
 
         cfgWriter.write(json, 0, json.length());
         cfgWriter.flush();
         cfgWriter.close();
+        identityFileList.add("assistant.json");
 
-        LOGGER.info(json);
+        LOGGER.debug(json);
     }
 
 
+    /**
+     * Zips all the identity files into an archive.
+     *
+     * @throws Exception on error
+     */
+    public void zip() throws Exception {
+
+        LOGGER.debug("Creating zip archive");
+
+
+        /* Create the zip archive */
+
+        FileOutputStream fos = new FileOutputStream(outputDir + File.separator + identity + ".zip");
+        ZipOutputStream zip = new ZipOutputStream(fos);
+
+
+        /* Create the extensions directory (even if there are no extensions) */
+
+        zip.putNextEntry(new ZipEntry("extensions/"));
+        zip.closeEntry();
+
+        /* Zip up the files */
+
+        for (String filename : identityFileList) {
+            LOGGER.debug(String.format("Writing '%s' to zip archive", filename));
+
+            File file = new File(outputDir + File.separator + filename);
+            FileInputStream fis = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(filename);
+            zip.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zip.write(bytes, 0, length);
+            }
+            fis.close();
+
+            /* Remove the file as it is zipped */
+            
+            file.delete();
+        }
+
+        zip.close();
+        fos.close();
+
+        new File(outputDir + File.separator + "extensions").delete();
+    }
 
 
     /**
@@ -211,7 +303,7 @@ class Train extends Tool {
         /* Locate the miscellaneous configuration file */
 
         Misc misc;
-        File file = new File(dataDir + File.separator + "misc.json");
+        File file = new File(inputDir + File.separator + "misc.json");
 
         if (file.exists())
             misc = objectFactory.fromJson(file, Misc.class);
@@ -236,15 +328,15 @@ class Train extends Tool {
     @SuppressWarnings("unchecked")
     private void processPreprocessingPipeline() throws Exception {
 
-        Preprocessor[] pipeline = new Preprocessor[0];
+        Preprocessor[] pipeline;
         
         /* Locate the pipeline file */
 
-        File pipelineFile = new File(dataDir + File.separator + "pipeline.json");
+        File pipelineFile = new File(inputDir + File.separator + "pipeline.json");
         if (pipelineFile.isFile()) {
             /* Load the Pipeline data */
 
-            pipeline = objectFactory.fromJson(pipelineFile, pipeline.getClass());
+            pipeline = objectFactory.fromJson(pipelineFile, Preprocessor[].class);
 
             /* Basic story validation */
 
@@ -264,7 +356,7 @@ class Train extends Tool {
         ObjectInitializer initializer = new ObjectInitializer();
 
         for (Preprocessor p : pipeline) {
-            initializer.initialize(p, assistant, identityConfig, LOGGER);
+            initializer.initialize(p, this, assistant, identityConfig, LOGGER);
         }
     }
 
@@ -279,7 +371,7 @@ class Train extends Tool {
 
         /* Locate the story files */
 
-        File catConfigFile = new File(dataDir + File.separator + "categorizers.json");
+        File catConfigFile = new File(inputDir + File.separator + "categorizers.json");
         Categorizers categorizers;
 
         if (catConfigFile.isFile()) {
@@ -308,7 +400,7 @@ class Train extends Tool {
 
         /* Locate the story files */
 
-        File storyDir = new File(dataDir + File.separator + "stories");
+        File storyDir = new File(inputDir + File.separator + "stories");
         if (!storyDir.isDirectory()) throw new Exception(String.format("Invalid story directory '%s'",  storyDir.getName()));
 
 
@@ -349,7 +441,7 @@ class Train extends Tool {
         
         /* Locate the utterances file */
 
-        File file = new File(dataDir + File.separator + "utterances.json");
+        File file = new File(inputDir + File.separator + "utterances.json");
         if (file.exists()) {
             /* Load the data */
 
@@ -378,7 +470,7 @@ class Train extends Tool {
 
         /* Get a list of the intent training files */
 
-        File intentDir = new File(dataDir + File.separator + "intents");
+        File intentDir = new File(inputDir + File.separator + "intents");
         if (!intentDir.isDirectory()) throw new Exception(String.format("Invalid intent directory '%s'",  intentDir.getName()));
 
 
@@ -405,13 +497,16 @@ class Train extends Tool {
 
         Trainer.Context context = new Trainer.Context();
         context.identity = assistant.getIdentity();
-        context.service = this;
+//        context.service = this;
         context.logger = LOGGER;
-        context.modelDir = modelDir;
+        context.modelDir = outputDir;
+        context.files = new ArrayList<String>();
 
         for (String name : trainers.keySet()) {
             trainers.get(name).train(context);
         }
+
+        identityFileList.addAll(context.files);
     }
 
 
@@ -462,9 +557,10 @@ class Train extends Tool {
         if (intentData.lessons != null) {
             Trainer.Context context = new Trainer.Context();
             context.identity = assistant.getIdentity();
-            context.service = this;
-            context.modelDir = modelDir;
+//            context.service = this;
+            context.modelDir = outputDir;
             context.logger = LOGGER;
+            context.files = new ArrayList<String>();
 
             for (Lesson lesson : intentData.lessons) {
 
@@ -552,6 +648,8 @@ class Train extends Tool {
                     throw new Exception(String.format("Unsupported training type '%s'", lesson.type));
                 }
             }
+
+            identityFileList.addAll(context.files);
         }
         else {
             throw new Exception(String.format("No training data for intent '%s'", intentName));
@@ -594,16 +692,6 @@ class Train extends Tool {
             }
             intent.setEntities(entities);
         }
-    }
-
-
-    /**
-     * Returns this service's name.
-     *
-     * @return the service name
-     */
-    public String getServiceName() {
-        return "train";
     }
 }
 

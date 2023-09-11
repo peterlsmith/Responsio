@@ -7,7 +7,7 @@ import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.GenericMap;
 import com.paradoxwebsolutions.core.Logger;
-import com.paradoxwebsolutions.core.ServiceAPI;
+import com.paradoxwebsolutions.core.ResourceAPI;
 import com.paradoxwebsolutions.core.annotations.Init;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class PreprocessorPOS extends PreprocessorCopy {
 
     /** Name of our model resource */
 
-    private static final String resource = "data/models/opennlp/%s-pos-maxent.bin";
+    private static final String modelTemplate = "data/models/opennlp/%s-pos-maxent.bin";
 
 
     /** Language models used for POS tagging */
@@ -72,13 +72,13 @@ public class PreprocessorPOS extends PreprocessorCopy {
     /**
      * Loads the POS models.
      *
-     * @param service  the service API instance (used for logging, etc)
-     * @param config   application level configuration
-     * @param logger   the assistant logger
+     * @param resource  the resource API instance 
+     * @param config    application level configuration
+     * @param logger    the assistant logger
      * @throws ApplicationError on error
      */
     @Init
-    public static void init(ServiceAPI service, Config config, Logger logger) throws ApplicationError {
+    public static void init(ResourceAPI resource, Config config, Logger logger) throws ApplicationError {
 
         /* Load the available POS models */
 
@@ -86,18 +86,15 @@ public class PreprocessorPOS extends PreprocessorCopy {
             final String[] langs = config.getList("opennlp.pos.languages", new String[] {"en"});
 
             for (String lang : langs) {
-                String modelResource = String.format(resource, lang);
-                InputStream is = service.getResource(modelResource);
-
-                if (is == null) throw new ApplicationError(String.format("No POS language model '%s'", modelResource));
-                {
-                    logger.info(String.format("Loading PreprocessorPOS model '%s'", modelResource));
-                    posModels.put(lang, new POSModel(is));
-                }
+                String filename = String.format(modelTemplate, lang);
+                InputStream is = resource.getInputStream(filename);
+                
+                logger.info(String.format("Loading PreprocessorPOS model '%s'", filename));
+                posModels.put(lang, new POSModel(is));
             }
         }
         catch (IOException x) {
-            throw new ApplicationError(String.format("Failed to load pos model '%s'", resource));
+            throw new ApplicationError(String.format("Failed to load PreprocessorPOS model '%s'", x));
         }
     }
 

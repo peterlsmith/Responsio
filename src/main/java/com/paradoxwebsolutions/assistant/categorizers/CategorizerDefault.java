@@ -11,6 +11,7 @@ import com.paradoxwebsolutions.assistant.categorizers.trainers.CategorizerDefaul
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.Logger;
+import com.paradoxwebsolutions.core.ResourceAPI;
 import com.paradoxwebsolutions.core.StringMap;
 import com.paradoxwebsolutions.core.annotations.Init;
 
@@ -62,24 +63,25 @@ public class CategorizerDefault extends Categorizer {
      * Custom initialization (called after deserialization is complete).
      *
      * @param assistant  the assistant to which this categorizer belongs
-     * @param config     any identity specific configuration
+     * @param resource   resource API for loading data files
+     * @param logger     the identity specific logger for outputting messages
      * @throws ApplicationError on error
      */
     @Init
-    public void init(Assistant assistant, Config config) throws ApplicationError {
+    public void init(Assistant assistant, ResourceAPI resource, Logger logger) throws ApplicationError {
 
         /* Loop through configured languages and load categorizer models */
 
         for (String language : models.keySet()) {
-            String modelFilename = config.getString("dir.model") + File.separator + models.get(language);
-            (new Logger(assistant.getIdentity())).info(String.format("Loading categorizer model '%s", models.get(language)));
+            String filename = models.get(language);
+            logger.info(String.format("Loading categorizer model '%s", filename));
 
             try {
-                DoccatModel model = new DoccatModel(new File(modelFilename));
+                DoccatModel model = new DoccatModel(resource.getInputStream(filename));
                 this.categorizers.put(language, new DocumentCategorizerME(model));
             }
             catch (Exception x) {
-                throw new ApplicationError(String.format("Failed to load categorizer model '%s': %s", modelFilename, x.getMessage()));
+                throw new ApplicationError(String.format("Failed to load categorizer model '%s'", filename, x));
             }
         }
     }

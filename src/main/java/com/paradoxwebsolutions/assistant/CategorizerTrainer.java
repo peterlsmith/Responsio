@@ -1,8 +1,7 @@
 package com.paradoxwebsolutions.assistant;
 
-import com.paradoxwebsolutions.core.ServiceAPI;
 import com.paradoxwebsolutions.core.ApplicationError;
-import com.paradoxwebsolutions.core.ServiceAPI;
+import com.paradoxwebsolutions.core.ResourceAPI;
 
 import java.util.List;
 
@@ -55,9 +54,9 @@ public interface CategorizerTrainer {
         public String       identity;
 
 
-        /** A reference to the service API */
+        /** A reference to the resource API */
 
-        public ServiceAPI   service;
+        public ResourceAPI   resource;
 
 
         /** The directory to be used for any data files for this assistant */

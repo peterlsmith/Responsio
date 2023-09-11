@@ -2,11 +2,12 @@ package com.paradoxwebsolutions.bot;
 
 /* Imports */
 
+import com.paradoxwebsolutions.core.ApplicationError;
+import com.paradoxwebsolutions.core.ClassInitializer;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.CustomLogHandler;
 import com.paradoxwebsolutions.core.Logger;
-import com.paradoxwebsolutions.core.ClassInitializer;
-import com.paradoxwebsolutions.core.ServiceAPI;
+import com.paradoxwebsolutions.core.ResourceAPI;
 
 import java.io.File;
 import java.io.InputStream;
@@ -34,7 +35,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author Peter Smith
  */
-public class BotService extends HttpServlet implements ServiceAPI {
+public class BotService extends HttpServlet implements ResourceAPI {
 
     /** Logger */
     
@@ -116,17 +117,19 @@ public class BotService extends HttpServlet implements ServiceAPI {
             serviceInit();
 
 
-            /* Load any modules */
+            /* Load any modules (these are bound into the war file) */
 
-            ClassInitializer loader = new ClassInitializer();
+            ClassInitializer initializer = new ClassInitializer();
             String[] modules = Arrays.stream(config.getString("service.modules", "").split("[\\s,]+")).filter(w -> w.length() > 0).toArray(String[]::new);
 
             for (String module : modules) {
                 LOGGER.debug(String.format("Loading module: %s", module));
-                loader.loadModule(module, this, config, LOGGER);
+                Class cls = this.getClass().getClassLoader().loadClass(module);
+                initializer.initialize(cls, this, config, LOGGER);
             }
         }
         catch (Exception x) {
+            x.printStackTrace();
             throw new ServletException("Service configuration failed: " + x.getMessage());
         }
     }
@@ -162,28 +165,11 @@ public class BotService extends HttpServlet implements ServiceAPI {
 
 
 
-    /**
-     * Returns the service name.
-     *
-     * @return the service name.
-     */
-    public String getServiceName() {
-        return service;
-    }
-
-
-
-    /**
-     * Returns an InputStream instance for an application resource.
-     * <p>Application resources are bound into the war/jar file.
-     * 
-     * @param resourceName  the full pathname of the resource to return
-     * @return an InputStream instance for the named resource, or null if named resource does not exist
-     */
-    public InputStream getResource(String resourceName) {
+    @Override
+    public InputStream getInputStream(String name) throws ApplicationError {
         /* Note that in our WAR files, we assume all data files are located in WEB-INF */
         
-        return getServletContext().getResourceAsStream("WEB-INF/" + resourceName);
+        return getServletContext().getResourceAsStream("WEB-INF/" + name);
     }
 
 }

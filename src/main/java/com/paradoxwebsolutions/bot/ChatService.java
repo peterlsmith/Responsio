@@ -6,14 +6,13 @@ import com.paradoxwebsolutions.core.ConfigError;
 import com.paradoxwebsolutions.core.CustomLogHandler;
 import com.paradoxwebsolutions.core.HttpError;
 import com.paradoxwebsolutions.core.ObjectFactory;
-import com.paradoxwebsolutions.core.ServiceAPI;
 import com.paradoxwebsolutions.core.StringMap;
 import com.paradoxwebsolutions.assistant.Agent;
 import com.paradoxwebsolutions.assistant.Assistant;
 import com.paradoxwebsolutions.assistant.AssistantFactory;
 import com.paradoxwebsolutions.assistant.ClientResponse;
 import com.paradoxwebsolutions.assistant.ClientSession;
-import com.paradoxwebsolutions.assistant.IdentityClassLoader;
+import com.paradoxwebsolutions.assistant.IdentityArchive;
 import com.paradoxwebsolutions.assistant.SessionData;
 
 import java.io.File;
@@ -277,8 +276,8 @@ public class ChatService extends BotService {
             /* Get identify specific configuration from global configuration */
 
             Config localConfig = getConfig().getConfig("identity.default").load(getConfig().getConfig("identity." + identity));
-            String modelDir = getConfig().getString("dir.model") + File.separator + identity;
-            localConfig.setString("dir.model", modelDir);
+            String modelDir = getConfig().getString("dir.identity") + File.separator + identity;
+            localConfig.setString("dir.identity", modelDir);
             localConfig.setString("identity", identity);
             localConfig.setString("dir.root", getConfig().getString("dir.root"));
 
@@ -291,18 +290,7 @@ public class ChatService extends BotService {
                 LOGGER.info(String.format("Loaded local configuration file for identity '%s'", identity));
             }
 
-
-            /* Create a class loader for this identity so it can isolate any custom code */
-
-            IdentityClassLoader classLoader = new IdentityClassLoader(this);
-            classLoader.loadClasses(modelDir + File.separator + "extensions");
-
-
-            /* Deserialize the assistant controller */
-
-            Assistant assistant = (new AssistantFactory(classLoader)).fromJson(new File(modelDir + File.separator + "assistant.json"), Assistant.class);
-
-            return new Agent(assistant, localConfig);
+            return new Agent(localConfig);
         }
         catch (Exception x) {
             throw new ApplicationError(String.format("Unable to initialize assistant for identity '%s': %s", identity, x.getMessage()));
@@ -385,7 +373,7 @@ public class ChatService extends BotService {
 
         /* Look for a client configuration file */
 
-        File clientFile = new File(agent.getConfig().getString("dir.model") + File.separator + "client.json");
+        File clientFile = new File(agent.getConfig().getString("dir.identity") + File.separator + "client.json");
         JsonObject clientConfig;
     
         try {

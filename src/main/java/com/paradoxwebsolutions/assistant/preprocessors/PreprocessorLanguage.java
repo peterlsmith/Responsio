@@ -4,6 +4,7 @@ import com.paradoxwebsolutions.assistant.ClientSession;
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.Config;
 import com.paradoxwebsolutions.core.Logger;
+import com.paradoxwebsolutions.core.ResourceAPI;
 import com.paradoxwebsolutions.core.annotations.Init;
 
 import java.io.File;
@@ -45,23 +46,23 @@ public class PreprocessorLanguage extends PreprocessorCopy {
      * <p>The language detection model is usually specific to the identity and must therefore
      * be loaded on object initialization rather than class initialization.
      *
+     * @param resource  the resource API instance 
      * @param config     the assistant specific configuration
      * @param logger     the assistant logger
      * @throws ApplicationError on error
      */
     @Init
-    public void init(Config config, Logger logger) throws ApplicationError {
+    public void init(ResourceAPI resource, Config config, Logger logger) throws ApplicationError {
 
         if (!config.getBool("training", false)) {
             String filename = "ld-opennlp.bin";
-            String modelFile = config.getString("dir.model") + File.separator + filename;
             logger.info(String.format("Loading language model '%s'", filename));
 
             try {
-                detector = new LanguageDetectorME(new LanguageDetectorModel(new File(modelFile)));
+                detector = new LanguageDetectorME(new LanguageDetectorModel(resource.getInputStream(filename)));
             }
             catch (Exception x) {
-                throw new ApplicationError(String.format("Failed to load language model '%s': %s", modelFile, x.getMessage()));
+                throw new ApplicationError(String.format("Failed to load language model '%s'", filename, x));
             }
         }
     }

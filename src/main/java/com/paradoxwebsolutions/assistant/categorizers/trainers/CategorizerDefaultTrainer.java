@@ -104,7 +104,8 @@ public class CategorizerDefaultTrainer implements Trainer {
         final String modelDir = context.modelDir;
         final Logger logger = context.logger;
 
-
+        /* TBD Update to use traingin parameters if available */
+        
         try {
             /* Now train the categorizer models - one for each language */
 
@@ -127,6 +128,7 @@ public class CategorizerDefaultTrainer implements Trainer {
                 logger.info(String.format("Created categorizer model '%s'", modelFile.getName()));
 
                 this.categorizer.setModel(language, modelFile.getName());
+                context.files.add(modelFile.getName());
             }
 
 
@@ -151,6 +153,7 @@ public class CategorizerDefaultTrainer implements Trainer {
                 File modelFile = new File(modelDir + File.separator + "ld-opennlp.bin");
                 model.serialize(modelFile);
                 logger.debug(String.format("Created language detection model '%s'", modelFile.getName()));
+                context.files.add(modelFile.getName());
             }
 
         }

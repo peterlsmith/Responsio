@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Basic configuration
+#
+dir=$(cd "$(dirname "$0")"; pwd -P)
+root=$(dirname $dir)
+version=$(grep property "${root}/build.xml" | grep version.responsio | egrep -o '[0-9]+(\.[0-9]+)*')
+model_dir="${root}/models"
+
+identity="prototype"
+
+
+# Process command line arguments
+#
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -m | --models )
+      model_dir="$2"
+      shift
+      shift
+      ;;
+    *)
+      identity="$1"
+      shift
+      ;;
+  esac
+done
+
+
+echo "Chatting with ${identity}"
+
+# Execute the chat
+
+java -cp "${root}/dist/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." \
+    "-Ddir.root=${root}" "-Ddir.identity=${model_dir}" \
+    com.paradoxwebsolutions.tools.Chat "${identity}"

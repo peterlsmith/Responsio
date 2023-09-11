@@ -4,7 +4,7 @@ import com.paradoxwebsolutions.assistant.ClientSession;
 import com.paradoxwebsolutions.core.ApplicationError;
 import com.paradoxwebsolutions.core.GenericMap;
 import com.paradoxwebsolutions.core.Logger;
-import com.paradoxwebsolutions.core.ServiceAPI;
+import com.paradoxwebsolutions.core.ResourceAPI;
 import com.paradoxwebsolutions.core.annotations.Init;
 
 import java.io.InputStream;
@@ -46,16 +46,16 @@ public class PreprocessorLemmatizer extends PreprocessorCopy {
     /**
      * Loads the lemmatizer dictionary.
      *
-     * @param service  the service API instance (used for logging, etc)
+     * @param api      the resource API instance 
      * @param logger   the assistant logger
      * @throws ApplicationError on error
      */
     @Init
-    public static void init(ServiceAPI service, Logger logger) throws ApplicationError {
+    public static void init(ResourceAPI api, Logger logger) throws ApplicationError {
        /* Load the model */
 
         try {
-            InputStream is = service.getResource(resource);
+            InputStream is = api.getInputStream(resource);
             if (is == null) throw new ApplicationError(String.format("Missing resource '%s'", resource));
             lemmatizer = new DictionaryLemmatizer(is);
             logger.info(String.format("Loaded PreprocessorLemmatizer dictionary '%s'", resource));
