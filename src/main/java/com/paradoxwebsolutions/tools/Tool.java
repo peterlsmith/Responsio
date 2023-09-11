@@ -44,22 +44,42 @@ abstract class Tool implements ResourceAPI {
      */
     public Tool(final String serviceName) throws Exception {
 
-        /* Set up basic configuration pull from environment */
+        /* Pull basic configuration from environment */
 
-        for (String property : new String[] {"dir.root", "dir.identity"}) {
-            String value = System.getProperty(property);
-            if (!value.endsWith(File.separator)) value += File.separator;
-            config.setString(property, value);
+        rootDir = System.getProperty("dir.root");
+        if (rootDir == null) {
+            throw new Exception("Root directory location 'dir.root' must be specified in the environment");
         }
 
-        rootDir = config.getString("dir.root");
-        config.load(new File(rootDir + "scripts" + File.separator + "cfg" + File.separator + serviceName + ".properties"));
+        if (!rootDir.endsWith(File.separator)) rootDir += File.separator;
+        config.setString("dir.root", rootDir);
+
+
+        /* Load config files ir order of priority (lest -> most specific) */
+
+        File cfgFile = new File(rootDir + "data" + File.separator + "responsio.properties");
+        if (cfgFile.exists()) config.load(cfgFile);
+
+        cfgFile = new File(rootDir + "scripts" + File.separator + "tools.properties");
+        if (cfgFile.exists()) config.load(cfgFile);
+
+        cfgFile = new File(rootDir + "scripts" + File.separator + serviceName + ".properties");
+        if (cfgFile.exists()) config.load(cfgFile);
+
+
+        /* Check for a manual override of the identity directory */
+
+        String identityDir = System.getProperty("dir.identity");
+        if (identityDir != null) {
+            if (!identityDir.endsWith(File.separator)) identityDir += File.separator;
+            config.setString("dir.identity", identityDir);
+        }
 
 
         /* Configure the top level logger */
 
         LOGGER = new Logger("", config.getConfig("logs.service"));
-        
+
 
         /* Load any modules */
 

@@ -4,7 +4,7 @@
 #
 dir=$(cd "$(dirname "$0")"; pwd -P)
 root=$(dirname $dir)
-version=$(grep property "${root}/build.xml" | grep version.responsio | egrep -o '[0-9]+(\.[0-9]+)*')
+version=$(grep version.responsio "${root}/build.properties" | egrep -o '[0-9]+(\.[0-9]+)*')
 
 # Check which identity is being trained
 #
@@ -16,37 +16,14 @@ fi
 echo "Training ${identity}"
 
 
-
-
-# Look for any extensions to compile. These will likely be needed for assembling the 
-# identity configuration.
+# Configure the input and output directories
 #
-shopt -s nullglob
-
 input_dir="${root}/data/identities"
-output_dir="${root}/models"
-
-ext_dir="${input_dir}/${identity}/extensions"
-ext_out="${output_dir}/${identity}/extensions"
-mkdir -p "${ext_out}"
-
-for java in ${ext_dir}/*.java; do
-
-    echo "Compiling extension: $java"
-    javac -cp "${root}/dist/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." "${java}"
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: Code compilation failed"
-        exit 1
-    fi
-    class="${java/%java/class}"
-    echo mv ${class} ${ext_out}
-    cp -p "${class}" "${ext_out}"
-done
-shopt -u nullglob
+output_dir="${root}/idents"
 
 
 # Execute the trainer
 
-java -cp "${root}/dist/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." \
+java -cp "${root}/libs/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." \
     "-Ddir.root=${root}" "-Ddir.data=${input_dir}" "-Ddir.identity=${output_dir}"\
     com.paradoxwebsolutions.tools.Train "${identity}"

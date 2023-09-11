@@ -4,8 +4,9 @@
 #
 dir=$(cd "$(dirname "$0")"; pwd -P)
 root=$(dirname $dir)
-version=$(grep property "${root}/build.xml" | grep version.responsio | egrep -o '[0-9]+(\.[0-9]+)*')
-model_dir="${root}/models"
+version=$(grep version.responsio "${root}/build.properties" | egrep -o '[0-9]+(\.[0-9]+)*')
+
+identity_dir="${root}/idents"
 
 identity="prototype"
 
@@ -14,8 +15,8 @@ identity="prototype"
 #
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -m | --models )
-      model_dir="$2"
+    -i | --idents )
+      identity_dir="$2"
       shift
       shift
       ;;
@@ -30,7 +31,6 @@ done
 echo "Chatting with ${identity}"
 
 # Execute the chat
-
-java -cp "${root}/dist/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." \
-    "-Ddir.root=${root}" "-Ddir.identity=${model_dir}" \
+java -cp "${root}/libs/responsio-${version}.jar:${root}/libs/opennlp-tools-2.1.0.jar:${root}/libs/gson-2.10.jar:." \
+    "-Ddir.root=${root}" "-Ddir.identity=${identity_dir}" \
     com.paradoxwebsolutions.tools.Chat "${identity}"

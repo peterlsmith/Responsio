@@ -188,7 +188,7 @@ public class Logger {
 
         if (config != null) {
             String dir = config.getString("dir");
-            if (dir != null) {
+            if (dir != null && dir.length() > 0) {
                 /* This is a file based logger, so set up max log file size and number of rollovers */
 
                 int size = config.getInt("size", 10000000);

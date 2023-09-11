@@ -42,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,9 +56,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -111,6 +115,11 @@ class Train extends Tool {
     private String   outputDir;
 
 
+    /** The directory location of the identity archive */
+
+    private String   identityDir;
+
+
     /** Factory used to serialize chat assistant components to/from json */
 
     private AssistantFactory objectFactory;
@@ -136,6 +145,12 @@ class Train extends Tool {
     private List<String> identityFileList = new ArrayList<>();
 
 
+    /** Class loader for extensions */
+
+    ClassLoader classLoader;
+
+
+
     /**
      * Creates a trainer instance.
      *
@@ -144,7 +159,7 @@ class Train extends Tool {
      */
     public Train(final String identity) throws Exception {
         super("train");
-        this.identity = identity;
+        this.identity = identity; 
 
         inputDir = System.getProperty("dir.data");
         if (inputDir == null) throw new Exception("Missing 'data.dir' property");
@@ -154,49 +169,18 @@ class Train extends Tool {
         /* Get identify specific configuration required by assistant */
 
         identityConfig = config.getConfig("identity.default").load(config.getConfig("identity." + identity));
-        outputDir = config.getString("dir.identity") + File.separator + identity;
+        outputDir = Files.createTempDirectory("responsio-").toFile().getAbsolutePath();
+        LOGGER.debug(String.format("Temporary directory: %s",outputDir));
+        identityDir = config.getString("dir.identity") + File.separator + identity;
+        
         identityConfig.setString("dir.identity", outputDir);
         identityConfig.setString("identity", identity);
         identityConfig.setBool("training", true);
 
 
-        /* Create a class loader and load any custom code files needed by this identity */
-
-        ClassLoader classLoader = new ClassLoader();
-        ClassInitializer classInitializer = new ClassInitializer();
-
-        File dir = new File(outputDir + File.separator + "extensions");
-        if (!dir.isDirectory()) {
-            throw new ApplicationError(String.format("Invalid class directory '%s'",  dir.getPath()));
-        }
-
-
-        /* Get a list of the files and load if a java class */
-
-        ResourceAPI api = new ResourceAPI() {
-            @Override
-            public InputStream getInputStream(String name) throws ApplicationError {
-                try {
-                    return new FileInputStream(outputDir + File.separator + name);
-                }
-                catch (Exception x) {
-                    return null;
-                }
-            }
-        };
-
-        for (File file : dir.listFiles()) {
-            if (file.getName().endsWith(".class")) {
-                Class<?> cls = classLoader.loadClass(file);
-
-                classInitializer.initialize(cls, api, identityConfig);
-                identityFileList.add("extensions/" + cls.getSimpleName() + ".class");
-            }
-        }
-
-
         /* Create an object factory that will be used to serialize configuration components */
 
+        classLoader = new ClassLoader();
         objectFactory = new AssistantFactory(classLoader);
 
 
@@ -213,6 +197,7 @@ class Train extends Tool {
      * @throws Exception on error
      */
     public void doTrain() throws Exception {
+        processExtensions();
         processMisc();
         processPreprocessingPipeline();
         processCategorizers();
@@ -228,7 +213,7 @@ class Train extends Tool {
      *
      * @throws Exception on error
      */
-    public void save() throws Exception {
+    private void save() throws Exception {
         /* Save the assistant configuration file */
 
         FileWriter cfgWriter = new FileWriter(outputDir + File.separator + "assistant.json");
@@ -238,8 +223,6 @@ class Train extends Tool {
         cfgWriter.flush();
         cfgWriter.close();
         identityFileList.add("assistant.json");
-
-        LOGGER.debug(json);
     }
 
 
@@ -248,14 +231,14 @@ class Train extends Tool {
      *
      * @throws Exception on error
      */
-    public void zip() throws Exception {
-
-        LOGGER.debug("Creating zip archive");
-
+    private void zip() throws Exception {
 
         /* Create the zip archive */
 
-        FileOutputStream fos = new FileOutputStream(outputDir + File.separator + identity + ".zip");
+        File archive = new File(identityDir + File.separator + identity + ".zip");
+        LOGGER.debug(String.format("Creating zip archive: %s", archive));
+
+        FileOutputStream fos = new FileOutputStream(archive);
         ZipOutputStream zip = new ZipOutputStream(fos);
 
 
@@ -291,6 +274,98 @@ class Train extends Tool {
 
         new File(outputDir + File.separator + "extensions").delete();
     }
+
+
+
+    /**
+     * Processes (compiles) any extension files.
+     *
+     * @throws Exception on error
+     */
+    private void processExtensions() throws Exception {
+
+        LOGGER.info("Processing identity extensions");
+
+        /* Check to see if the extensions input directory exists */
+
+        File extensionDir = new File(inputDir + File.separator + "extensions");
+        if (!extensionDir.exists() || !extensionDir.isDirectory()) return;
+
+
+        /* Check to see if we have any extensions to compile */
+
+        Set<File> sources = Stream.of(extensionDir.listFiles()).filter(file -> !file.isDirectory() && file.getName().endsWith(".java")).collect(Collectors.toSet());
+        if (sources.size() == 0) return;
+
+
+        /* Get a compiler instance */
+        
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new Exception("No java compiler found - required to compile extension sources");
+        }
+
+
+        /* Make sure the extension output directory exists */
+
+        extensionDir = new File(outputDir + File.separator + "extensions");
+        if (!extensionDir.exists() && !extensionDir.mkdirs()) {
+            throw new Exception("Extension output directory does not exists and cannot be created");
+        }
+
+
+        /* Compile the sources */
+
+        List<File> classes = new ArrayList<>();
+        for (File source : sources) {
+            /* Compile the source code */
+
+            LOGGER.info(String.format("Compiling source file '%s'", source.getPath()));
+            int result = compiler.run(null, null, null, source.getPath());
+            if (result != 0) {
+                throw new Exception(String.format("Compilation of %s failed", source.getName()));
+            }
+
+
+            /* Move compiled file into output directory */
+
+            File cls = new File(source.getAbsolutePath().replace(".java", ".class"));
+            File dest = new File(outputDir + File.separator + "extensions" + File.separator + cls.getName());
+            if (!cls.renameTo(dest)) {
+                throw new Exception("Cannot move compiled class to output directory");
+            }
+            classes.add(dest);
+        }
+
+
+        /** Create a resource api instance for initializing the classes once loaded */
+
+        ResourceAPI api = new ResourceAPI() {
+            @Override
+            public InputStream getInputStream(String name) throws ApplicationError {
+                try {
+                    return new FileInputStream(outputDir + File.separator + name);
+                }
+                catch (Exception x) {
+                    return null;
+                }
+            }
+        };
+
+        /* Load and initialize the classes */
+
+        ClassInitializer classInitializer = new ClassInitializer();
+
+        for (File file : classes) {
+            Class<?> cls = classLoader.loadClass(file);
+
+            classInitializer.initialize(cls, api, identityConfig);
+            identityFileList.add("extensions/" + cls.getSimpleName() + ".class");
+        }
+
+
+    }
+
 
 
     /**
