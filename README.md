@@ -85,39 +85,37 @@ data/models/opennlp/lang.bin
 </pre>
 
 
----
-
-## Testing
 
 ---
 
 ## Deploying
-Responsio is designed to be deployed in a servlet container such as Tomcat using the war file build product.
+Responsio is designed to be deployed in a servlet container such as Tomcat using the war file build product, and should be deployed via the servlet containers standard deployment tools (e.g. the manager interface in Tomcat).
 
-Operationally, Responsio requires one initialization parameter to define a root directory that will be used for assistant configuration and logging. Generally, this is configured via the servlet container - for example, by adding the following line to <code>context.xml</code> in the <code>&lt;Context></code> element.
+## Configuring
+Operationally, Responsio requires one initialization parameter to define a root directory that will be used for assistant configuration and logging. This can be configured via the Tomcat context - for example, by adding the following line to Tomcat's <code>conf/context.xml</code> in the <code>&lt;Context></code> element.
 
 <pre>
   &lt;Parameter name="responsio.workdir"
-    value="&lt;directory>"
+    value="&lt;root directory>"
     override="true"
     description="Root working directory for this application"/>
 </pre>
 
 
-Where <code>&lt;directory></code> is the desired disk location. Note that this directory MUST be accessible (read/write) by the user account under which the servlet container is running. This configuration value is expected to be set once only.
+Where <code>&lt;root directory></code> is the desired disk location. Note that this directory MUST be accessible (read/write) by the user account under which the servlet container is running. This configuration value is expected to be set once only.
 
 Alternatively, this may be configured in the application web.xml file manually prior to building/packaging by adding a <code>&lt;init-param></code> element to the <code>&lt;servlet></code> element.
 
 <pre>
     &lt;init-param>
         &lt;param-name>responsio.workdir&lt;/param-name>
-        &lt;param-value>&lt;directory>&lt;/param-value>
+        &lt;param-value>&lt;root directory>&lt;/param-value>
     &lt;/init-param>
 </pre>
 
 ## Setup
 
-The operational directory used by Responsio contains the following:
+The root directory used by Responsio contains the following:
 
  - The main application configuration that may be changed periodically - such as logging levels, supported identities, etc. Many of these configuration parameters can be overridden by assistant specific values.
 
@@ -136,12 +134,23 @@ The directory structure is as follows:
             |-- identity
             |    |
             |    |- prototype
+            |    |      |
+            |    |      |- client.json
+            |    |      |- identity.properties
+            |    |      |- prototype.zip
             |    |...
             |
             |-- logs
 </pre>
 
-A baseline version of <code>responsio.properties</code> can be found in the projects <code>data</code> directory.
+A baseline version of <code>responsio.properties</code> can be found in the projects <code>data</code> directory. This provides a good starting point for the first configuration, and should generally only require minor updates (refer to the comments in the configuration file for details).  
+
+The <code>identity</code> directory is where all the individual identy configuration files are stored. These are:
+ - **client.json**  A client configuration file used by the Javascript library to configure the chat client tool in a web page.
+ - **identity.properties** Identity specific configuration. This optional file can be used to override configuration values in the primary <code>responsio.properties</code> configuration file - for example to increase the log level for a given identity.
+ - **&lt;identity name>.zip** An archive containing the chatbot configuration data and models (produce as a result of training)
+
+
 
 ---
 
@@ -154,6 +163,27 @@ Responsio comes with an example identity 'prototype' which demonstrates much of 
 ---
 
 ## Training
+Training is the process of creating the data models needed by the chatbot to successfully handle user input. Training is performed on a per-identity basis, and the output is an archive (zipped) file containing all the configuration and data models.  
+Prior to using the training tool, you will need to build/install it. 
+
+ > ant install
+
+or
+
+ > mvn install
+
+or
+
+ > gradle install
+
+This simply makes all the required library jar files accessible in the <code>libs</code> directory - it does not install or move any libraries or files outside of the Responsio root directory (<code>data/identity/&lt;identity></code> by default). You must also ensure that all your [identity configuration files have been created](docs/md/IdentityConfiguration.md) and placed in the appropriate identity data directory.
+
+Once the training tool has been installed and you have created your identity configuration files, training can be done at the command line using the training script. From the Responsio root directory:  
+
+> ./script/train &lt;identity>
+  
+Where &lt;identity> is the name of the identity you wish to train. If you omit the identity, the default 'prototype' identity will be trained. This will generally produce a lot of output as it processes the configuration files, but the end result should be the placement of a <code>&lt;identity>.zip</code> archive file in the identity runtine directory (configure via <code>dir.identity</code> in <code>responsio.properties</code>).  
+
 
 ---
 

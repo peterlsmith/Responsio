@@ -1,6 +1,9 @@
 
 apply plugin: 'war'
 
+def props = new Properties()
+file("build.properties").withInputStream { props.load(it) }
+
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -10,19 +13,10 @@ repositories {
 }
 
 dependencies {
-    implementation "org.apache.opennlp:opennlp-tools:2.1.0"
-    implementation "com.google.code.gson:gson:2.10"
-    compileOnly "jakarta.servlet:jakarta.servlet-api:5.0.0"
-    testImplementation "junit:junit:4.13.2"
-}
-
-
-task downloads {
-    ant.echo('Downloading OpenNLP models')
-    ant.mkdir(dir: "data/models/opennlp")
-    ant.get(skipexisting: true, src: "https://dlcdn.apache.org/opennlp/models/ud-models-1.0/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin", dest: "data/models/opennlp/en-pos-maxent.bin")
-    ant.get(skipexisting: true, src: "https://raw.githubusercontent.com/richardwilly98/elasticsearch-opennlp-auto-tagging/master/src/main/resources/models/en-lemmatizer.dict", dest: "data/models/opennlp")
-    ant.get(skipexisting: true, src: "https://dlcdn.apache.org/opennlp/models/langdetect/1.8.3/langdetect-183.bin", dest: "data/models/opennlp/lang.bin")
+    implementation "org.apache.opennlp:opennlp-tools:" + props.get("version.opennlp")
+    implementation "com.google.code.gson:gson:" + props.get("version.gson")
+    compileOnly "jakarta.servlet:jakarta.servlet-api:" + props.get("version.servlet.api")
+    testImplementation "junit:junit:" + props.get("version.junit")
 }
 
 
@@ -38,3 +32,24 @@ war {
     webInf { from 'data/models' into 'data/models'}
 }
 
+task dirs {
+    ant.mkdir(dir: "libs")
+    ant.mkdir(dir: "data/models/opennlp")
+}
+
+task downloads {
+    dependsOn = ['dirs']
+    ant.echo('Downloading OpenNLP models')
+    ant.get(skipexisting: true, src: "https://dlcdn.apache.org/opennlp/models/ud-models-1.0/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin", dest: "data/models/opennlp/en-pos-maxent.bin")
+    ant.get(skipexisting: true, src: "https://raw.githubusercontent.com/richardwilly98/elasticsearch-opennlp-auto-tagging/master/src/main/resources/models/en-lemmatizer.dict", dest: "data/models/opennlp")
+    ant.get(skipexisting: true, src: "https://dlcdn.apache.org/opennlp/models/langdetect/1.8.3/langdetect-183.bin", dest: "data/models/opennlp/lang.bin")
+}
+
+task install (dependsOn: jar) {
+    copy {
+        from "build/libs"
+        from configurations.default
+        into "libs"
+        include "*.jar"
+    }
+}

@@ -3,12 +3,7 @@
 
     <!-- set build versioning -->
 
-    <property name="version.responsio" value="0.1"/>
-    <property name="version.opennlp" value="2.1.0"/>
-    <property name="version.gson" value="2.10"/>
-    <property name="version.junit" value="4.13.2"/>
-    <property name="version.hamcrest" value="1.3"/>
-    <property name="version.servlet-api" value="5.0.0"/>
+    <property file="build.properties" />
 
 
     <!-- set global properties for this build -->
@@ -24,7 +19,7 @@
         <fileset dir="libs">
             <include name="opennlp-tools-${version.opennlp}.jar"/>
             <include name="gson-${version.gson}.jar"/>
-            <include name="jakarta.servlet-api-${version.servlet-api}.jar"/>
+            <include name="jakarta.servlet-api-${version.servlet.api}.jar"/>
         </fileset>
     </path>
 
@@ -159,8 +154,8 @@
                 -->
             </fileset>
             <classpath refid="classpath.compile"/>
-         <doctitle><![CDATA[Responsio Service]]></doctitle>
-             <bottom>
+            <doctitle><![CDATA[Responsio Service]]></doctitle>
+            <bottom>
                 <![CDATA[Copyright © 2023. All Rights Reserved.]]>
              </bottom>
              <group title = "Responsio Packages" packages = "com.paradoxwebsolutions.*"/>
@@ -173,7 +168,7 @@
 
     <target name="libs" description="Download dependency libraries">
         <mkdir dir="libs"/>
-        <get skipexisting="true" src="https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/${version.servlet-api}/jakarta.servlet-api-${version.servlet-api}.jar" dest="libs" />
+        <get skipexisting="true" src="https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/${version.servlet.api}/jakarta.servlet-api-${version.servlet.api}.jar" dest="libs" />
         <get skipexisting="true" src="https://repo1.maven.org/maven2/org/apache/opennlp/opennlp-tools/${version.opennlp}/opennlp-tools-${version.opennlp}.jar" dest="libs" />
         <get skipexisting="true" src="https://repo1.maven.org/maven2/com/google/code/gson/gson/${version.gson}/gson-${version.gson}.jar" dest="libs" />
         <get skipexisting="true" src="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/${version.hamcrest}/hamcrest-core-${version.hamcrest}.jar" dest="libs" />
@@ -188,5 +183,9 @@
     </target>
 
     <target name="downloads" depends="libs,models" description="Download all dependencies" />
+
+    <target name="install" depends="jar">
+        <copy file="${dir.dist}/responsio-${version.responsio}.jar" overwrite="true" todir="libs" />
+    </target>
 
 </project>
