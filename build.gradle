@@ -45,11 +45,9 @@ task downloads {
     ant.get(skipexisting: true, src: "https://dlcdn.apache.org/opennlp/models/langdetect/1.8.3/langdetect-183.bin", dest: "data/models/opennlp/lang.bin")
 }
 
-task install (dependsOn: jar) {
-    copy {
-        from "build/libs"
-        from configurations.default
-        into "libs"
-        include "*.jar"
-    }
+task install(dependsOn: jar, type: Copy) {
+    from "build/libs"
+    from configurations.default
+    into "libs"
+    include "*.jar"
 }
