@@ -49,7 +49,7 @@ if (window.RESPONSIO) {
             return document.createRange().createContextualFragment(html).firstElementChild;
         },
 
-        escape: (text) => serializer.serializeToString(document.createTextNode(text)).replace("\n", "<br\>")
+        escape: (text) => serializer.serializeToString(document.createTextNode(text)).replaceAll("\n", "<br/>")
     });
 
 }
