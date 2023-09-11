@@ -169,7 +169,7 @@ public class Parser {
 
     /** Regular expression used to identify double quoted string constants */
 
-    private static Pattern doubleQuotes = Pattern.compile("\"(\\\\[^\\\\]|[^\"])*\"");
+    private static Pattern doubleQuotes = Pattern.compile( "(?:\"(?:[^\"\\\\]|(?:\\\\.))*\")");
 
 
     /** Regular expression used to identify tokens to pad with spaces */
