@@ -3,7 +3,7 @@ A lightweight java based chatbot server and javascript client library.
 
 Based on OpenNLP, **Reponsio** is a small, yet highly capable java based chatbot server suitable for deployment in Tomcat or other servlet container. Combined with a small javascript client library for embedding into web sites, it can easily be configured with intents, actions, and stories. With multi-language support, named entity recognition, and easy customization on both the server and client side, Responsio can handle most common chatbot scenarios.  
 
-For the impatient, you can check out the [Quick Start](docs/md/quickstart.md) guide.
+For the impatient, you can check out the [Quick Start](docs/md/QuickStart.md) guide.
 
 ---
 
