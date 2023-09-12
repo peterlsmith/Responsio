@@ -19,16 +19,19 @@
                 "Hi",
                 "Good morning",
                 "Good afternoon",
+                "What's up?",
                 "Sup!"
             ],
             "fr": [
-                "salut",
-                "bonjour",
-                "bonsoir",
-                "coucou",
+                "Salut",
+                "Bonjour",
+                "Bonsoir",
+                "Coucou",
                 "Allô",
-                "bienvenue",
-                "enchanté"
+                "Bienvenue",
+                "Enchanté",
+                "Quoi de neuf",
+                "Comment allez-vous"
             ]
         }
     }

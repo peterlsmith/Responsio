@@ -54,11 +54,6 @@ public interface Trainer {
         public String       identity;
 
 
-        /** A reference to the service API */
-
-//        public ServiceAPI   service;
-
-
         /** The directory to be used for any data files for this assistant */
         
         public String       modelDir;
@@ -72,6 +67,7 @@ public interface Trainer {
         /** Any training configuration */
 
         public Config       config;
+
 
         /** Returned list of generated files */
 

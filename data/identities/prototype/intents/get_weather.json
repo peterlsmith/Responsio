@@ -56,7 +56,7 @@
                 "What's the forecast for {location:Boston} on {temporal:Wednesday}?",
                 "What is the weather in {location:Richmond} this {temporal:weekend}?",
                 "Are there any thunderstorms forecast for {temporal:tonight} in {location:Miami}?",
-                "Give me the forecast for {location:Baja} on {temporal:Monday}?",
+                "Give me the forecast for {location:Baja} on {temporal:Monday}",
                 "What's the weather in {location:Tuscon} on {temporal:Tuesday}?",
                 "I want the forecast for {location:Charlotte} on {temporal:Wednesday}?",
                 "What's the weather going to be like in {location:New York} on {temporal:Thursday}?",
@@ -75,6 +75,18 @@
                 "Give me the forecast for {location:washington DC}",
                 "Give me the forecast for {location:Sacramento} on {temporal:Tuesday}",
                 "Weather for {location:Witicha}?"
+            ],
+            "fr": [
+                "Quelle est la météo?",
+                "Quelles sont les prévisions météo?",
+                "Quel temps fait-il à {location:Paris}",
+                "Est-ce qu'il va pleuvoir à {location:Paris} {temporal:aujourd'hui}?",
+                "Pouvez-vous me donner la météo de {location:Paris} {temporal:demain}?",
+                "Je veux les prévisions pour {location:Paris} {temporal:mercredi}",
+                "Quel temps fera-t-il le {temporal:samedi} à {location:Paris}",
+                "J'ai besoin des prévisions météo pour {location:Paris} {temporal:la semaine prochaine}",
+                "Donnez-moi les prévisions pour {location:Paris} le {temporal:lundi}",
+                "Météo à {location:Paris} le {temporal:mercredi} ?"
             ]
         }
     }
