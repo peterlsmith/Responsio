@@ -233,6 +233,14 @@ class Train extends Tool {
      */
     private void zip() throws Exception {
 
+        /* Make sure the identity directory exists */
+
+        File idDir = new File(identityDir);
+        if (!idDir.exists() && !idDir.mkdirs()) {
+            throw new Exception(String.format("Cannot create identity directory '%s'", identityDir));
+        }
+
+
         /* Create the zip archive */
 
         File archive = new File(identityDir + File.separator + identity + ".zip");
@@ -572,7 +580,6 @@ class Train extends Tool {
 
         Trainer.Context context = new Trainer.Context();
         context.identity = assistant.getIdentity();
-//        context.service = this;
         context.logger = LOGGER;
         context.modelDir = outputDir;
         context.files = new ArrayList<String>();
@@ -632,7 +639,6 @@ class Train extends Tool {
         if (intentData.lessons != null) {
             Trainer.Context context = new Trainer.Context();
             context.identity = assistant.getIdentity();
-//            context.service = this;
             context.modelDir = outputDir;
             context.logger = LOGGER;
             context.files = new ArrayList<String>();

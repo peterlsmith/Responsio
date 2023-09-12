@@ -62,7 +62,7 @@ public class PreprocessorLanguage extends PreprocessorCopy {
                 detector = new LanguageDetectorME(new LanguageDetectorModel(resource.getInputStream(filename)));
             }
             catch (Exception x) {
-                throw new ApplicationError(String.format("Failed to load language model '%s'", filename, x));
+                throw new ApplicationError(String.format("Failed to load language model '%s'", filename), x);
             }
         }
     }

@@ -33,15 +33,15 @@
     },
     "weather" : {
         "en": "You have asked for the weather",
-        "fr": "Je suis désolé!"
+        "fr": "Vous avez demandé la météo"
     },
     "weather_with_location" : {
         "en": "You have asked for the weather for ${location}",
-        "fr": "Je suis désolé!"
+        "fr": "Vous avez demandé la météo pour ${location}"
     },
     "weather_with_temporal" : {
         "en": "You have asked for the weather with temporal",
-        "fr": "Je suis désolé!"
+        "fr": "Vous avez demandé la météo avec temporel"
     }
 
 }

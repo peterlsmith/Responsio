@@ -18,7 +18,17 @@
                 "humor me",
                 "tell me something funny",
                 "say something funny",
-                "I need some humor"
+                "I need some humor",
+                "make me laugh"
+            ],
+            "fr" : [
+                "peux-tu me raconter une blague",
+                "raconte-moi une blague s'il te plaît",
+                "une autre blague",
+                "Raconte moi une blague",
+                "dis-moi quelque chose de drôle",
+                "dis quelque chose de drôle",
+                "fais moi rire"
             ]
         }
     }

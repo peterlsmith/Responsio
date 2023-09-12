@@ -1,7 +1,9 @@
 # Responsio
 A lightweight java based chatbot server and javascript client library.
 
-Based on OpenNLP, **Reponsio** is a small, yet highly capable java based chatbot server suitable for deployment in Tomcat or other servlet container. Combined with a small javascript client library for embedding into web sites, it can easily be configured with intents, actions, and stories. With multi-language support, named entity recognition, and easy customization on both the server and client side, Responsio can handle most common chatbot scenarios.
+Based on OpenNLP, **Reponsio** is a small, yet highly capable java based chatbot server suitable for deployment in Tomcat or other servlet container. Combined with a small javascript client library for embedding into web sites, it can easily be configured with intents, actions, and stories. With multi-language support, named entity recognition, and easy customization on both the server and client side, Responsio can handle most common chatbot scenarios.  
+
+For the impatient, you can check out the [Quick Start](docs/md/quickstart.md) guide.
 
 ---
 
@@ -91,6 +93,8 @@ data/models/opennlp/lang.bin
 ## Deploying
 Responsio is designed to be deployed in a servlet container such as Tomcat using the war file build product, and should be deployed via the servlet containers standard deployment tools (e.g. the manager interface in Tomcat).
 
+---
+
 ## Configuring
 Operationally, Responsio requires one initialization parameter to define a root directory that will be used for assistant configuration and logging. This can be configured via the Tomcat context - for example, by adding the following line to Tomcat's <code>conf/context.xml</code> in the <code>&lt;Context></code> element.
 
@@ -112,6 +116,8 @@ Alternatively, this may be configured in the application web.xml file manually p
         &lt;param-value>&lt;root directory>&lt;/param-value>
     &lt;/init-param>
 </pre>
+
+---
 
 ## Setup
 
@@ -145,7 +151,7 @@ The directory structure is as follows:
 
 A baseline version of <code>responsio.properties</code> can be found in the projects <code>data</code> directory. This provides a good starting point for the first configuration, and should generally only require minor updates (refer to the comments in the configuration file for details).  
 
-The <code>identity</code> directory is where all the individual identy configuration files are stored. These are:
+The <code>identity</code> directory is where all the individual identity configuration files are stored - one subdirectory for each identity. These contain the following files:
  - **client.json**  A client configuration file used by the Javascript library to configure the chat client tool in a web page.
  - **identity.properties** Identity specific configuration. This optional file can be used to override configuration values in the primary <code>responsio.properties</code> configuration file - for example to increase the log level for a given identity.
  - **&lt;identity name>.zip** An archive containing the chatbot configuration data and models (produce as a result of training)
@@ -184,6 +190,13 @@ Once the training tool has been installed and you have created your identity con
   
 Where &lt;identity> is the name of the identity you wish to train. If you omit the identity, the default 'prototype' identity will be trained. This will generally produce a lot of output as it processes the configuration files, but the end result should be the placement of a <code>&lt;identity>.zip</code> archive file in the identity runtine directory (configure via <code>dir.identity</code> in <code>responsio.properties</code>).  
 
+---
+## Testing
+If you wish to test out an identiy prior to deploying, you can use the command line <code>chat</code> tool. From the Responsio root directory:  
+
+> ./script/chat &lt;identity>
+  
+Where &lt;identity> is the name of the identity you wish to chat with. If you omit the identity, the default 'prototype' identity will be used. Note that you must train the identity before you can chat with it. Note that the command line chat tool outputs the raw responses from the chatbot, so you can see the exact response that would be returned to the normal (javascript) chat client.
 
 ---
 

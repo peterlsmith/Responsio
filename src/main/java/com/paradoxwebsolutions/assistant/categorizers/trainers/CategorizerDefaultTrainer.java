@@ -104,7 +104,7 @@ public class CategorizerDefaultTrainer implements Trainer {
         final String modelDir = context.modelDir;
         final Logger logger = context.logger;
 
-        /* TBD Update to use traingin parameters if available */
+        /* TBD Update to use training parameters if available */
         
         try {
             /* Now train the categorizer models - one for each language */
@@ -158,7 +158,7 @@ public class CategorizerDefaultTrainer implements Trainer {
 
         }
         catch (Exception x) {
-            throw new ApplicationError("Failed to create categorizer model file: " + x.getMessage());
+            throw new ApplicationError("Failed to create categorizer model file", x);
         }
     }
 }
